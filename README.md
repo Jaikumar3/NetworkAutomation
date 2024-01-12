@@ -31,18 +31,18 @@ This script automates various network and Active Directory (AD) tasks using a se
 - Other dependencies as specified by the tools used
 
 ## Installation
-git clone https://github.com/yourusername/network-automation.git
-cd network-automation
-Chmod +x Tool.sh
-./Tool.sh
+- git clone https://github.com/yourusername/network-automation.git
+- cd network-automation
+- Chmod +x Tool.sh
+- ./Tool.sh
 
 ## Usage
 
 To use this script, provide the target IP address or subnet range as a command-line argument. The script will perform various tasks based on the specified tools.
 
 ## Run the recon script
-Chmod +x recon.sh
-./recon.sh TargetIP or subnetrange
+- Chmod +x recon.sh
+- ./recon.sh TargetIP or subnetrange
 
 ## Make sure your root user
 
