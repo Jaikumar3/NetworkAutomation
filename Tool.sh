@@ -1,0 +1,22 @@
+#!/bin/bash
+
+echo "Creating tools folder..."
+mkdir -p tools
+cd tools
+
+echo "Cloning and installing tools..."
+
+git clone https://github.com/x90skysn3k/brutespray.git
+git clone https://github.com/chompie1337/SMBGhost_RCE_PoC.git
+git clone https://github.com/Barriuso/SMBGhost_AutomateExploitation
+git clone https://github.com/Ekultek/BlueKeep.git
+git clone https://github.com/3ndG4me/AutoBlue-MS17-010.git
+
+# Assuming you have Go installed and the GOPATH/bin is in your PATH
+echo "Installing httpx..."
+go install -v github.com/projectdiscovery/httpx/cmd/httpx@latest
+
+echo "Installing nuclei..."
+go install -v github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest
+
+echo "All tools installed in the 'tools' folder."
