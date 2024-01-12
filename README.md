@@ -46,6 +46,9 @@ To use this script, provide the target IP address or subnet range as a command-l
 
 ## Make sure your root user
 
+## Contributing
+
+If you would like to contribute or report issues, please open a GitHub issue or create a pull request.
 ## License
 
 This script is licensed under the MIT License.
