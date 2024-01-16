@@ -27,6 +27,9 @@ set -e
 # Note: Ensure that Python3 and nmap are already installed on your system.
 # If not, you can install Python3 using your system's package manager, and nmap using: sudo apt-get install nmap
 
+#Tool paths
+Path=~/tools/smbghost/
+
 # Set variables
 IP="$1"
 subnet_range=$(echo "$IP" | cut -d. -f1-3)
