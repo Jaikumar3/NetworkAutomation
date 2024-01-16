@@ -18,5 +18,6 @@ go install -v github.com/projectdiscovery/httpx/cmd/httpx@latest
 
 echo "Installing nuclei..."
 go install -v github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest
+go install github.com/sdcampbell/nmapurls@latest
 
 echo "All tools installed in the 'tools' folder."
