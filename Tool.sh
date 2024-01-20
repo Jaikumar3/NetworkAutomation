@@ -20,4 +20,7 @@ echo "Installing nuclei..."
 go install -v github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest
 go install github.com/sdcampbell/nmapurls@latest
 
+wget -O exploit.py https://www.exploit-db.com/exploits/42315
+
+
 echo "All tools installed in the 'tools' folder."
