@@ -1,7 +1,7 @@
 #!/bin/bash
 
 echo "Creating tools folder..."
-mkdir -p tools
+mkdir -p $HOME/tools
 cd tools
 
 echo "Cloning and installing tools..."
@@ -21,6 +21,10 @@ go install -v github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest
 go install github.com/sdcampbell/nmapurls@latest
 
 wget -O exploit.py https://www.exploit-db.com/exploits/42315
+
+apt install pipx git
+pipx ensurepath
+pipx install git+https://github.com/Pennyw0rth/NetExec
 
 
 echo "All tools installed in the 'tools' folder."
