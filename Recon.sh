@@ -65,8 +65,40 @@ crackmapexec smb <target-ip> -u users.txt -p password --continue-on-success
 impacket-lookupsid example.local/user@<target-ip> 20000
 crackmapexec smb <target-ip> -u <username> -H hashes.txt
 
+echo "Scanning for MSRPC"
+nmap --script msrpc-enum -p 135 <target-ip>
+# rpcdump for dumping RPC endpoints
+impacket-rpcdump -port 135 <target-ip>
+# Find the Print System Remote Prototol or the Print System Asynchronous Remote Protocol
+impacket-rpcdump -port 135 <target-ip> | grep -E 'MS-RPRN|MS-PAR'
 
+echo "Running RPC Login checks..."
+rpcclient -U '' -N "$IP" -c enumdomusers 2>&1 | tee $results_dir/rpc-check.txt
+rpcclient -U '' -N "$IP" -c querydispinfo 2>&1 | tee -a $results_dir/rpc-check.txt
+rpcclient -U '' -N "$IP" -c enumdomains 2>&1 | tee -a $results_dir/rpc-check.txt
+rpcclient -U '' -N "$IP" -c enumdomgroups 2>&1 | tee -a $results_dir/rpc-check.txt
 
+echo "Running LDAP checks..."
+nmap --script "ldap-brute,ldap-search,ldap-* and not brute" --script-args "ldap.base='cn=users,dc=cqure,dc=net'" -p 389 <target-ip>
+# -k: Use Kerberos authentication
+netexec ldap <target-ip> -u usernames.txt -p '' -k
+# --trusted-for-delegation: Enumerate computers and users with the flag `TRUSTED_FOR_DELEGATION`
+netexec ldap <target-ip> -u username -p password --trusted-for-delegation
+
+echo "Running MSSQL checks..."
+nmap --script ms-sql-info,ms-sql-empty-password,ms-sql-xp-cmdshell,ms-sql-config,ms-sql-ntlm-info,ms-sql-tables,ms-sql-hasdbaccess,ms-sql-dac,ms-sql-dump-hashes --script-args mssql.instance-port=1433,mssql.username=sa,mssql.password=,mssql.instance-name=MSSQLSERVER -sV -p 1433 <IP>
+cme mssql "$IP" -u 'users.txt' -p 'password.txt' 2>&1  | tee $results_dir/mssql_results
+
+echo "Running MYSQL checks..."
+nmap --script "mysql-info,mysql-enum,mysql-brute,mysql-databases,mysql-users,mysql-*" -p 3306 <target-ip>
+
+echo "AJP"
+nmap -sV --script ajp-auth,ajp-headers,ajp-methods,ajp-request -n -p 8009 <IP>
+
+echo" Running RDP checks..."
+nmap --script "rdp-enum-encryption,rdp-ntlm-info,rdp*" -p 3389 <target-ip>
+#Brute Force Credentials
+hydra -l username -P passwords.txt <target-ip> rdp
 
 
 echo "Looking for web-related vulnerabilities..."
@@ -96,14 +128,10 @@ echo "Performing SMB enumeration..."
 cme smb "$IP" -u '' -p '' --shares 2>&1 | tee $results_dir/null_smb_open_shares
 cme smb "$IP" -u 'users.txt' -p 'password.txt' --shares 2>&1  | tee $results_dir/default_shares
 cme ssh "$IP" -u 'users.txt' -p 'password.txt' 2>&1  | tee $results_dir/ssh_pwned
-cme mssql "$IP" -u 'users.txt' -p 'password.txt' 2>&1  | tee $results_dir/mssql_results
+
 cme winrm "$IP" -u 'users.txt' -p 'password.txt' 2>&1 | tee $results_dir/winrm
 
-echo "Running RPC checks..."
-rpcclient -U '' -N "$IP" -c enumdomusers 2>&1 | tee $results_dir/rpc-check.txt
-rpcclient -U '' -N "$IP" -c querydispinfo 2>&1 | tee -a $results_dir/rpc-check.txt
-rpcclient -U '' -N "$IP" -c enumdomains 2>&1 | tee -a $results_dir/rpc-check.txt
-rpcclient -U '' -N "$IP" -c enumdomgroups 2>&1 | tee -a $results_dir/rpc-check.txt
+
 
 echo "Running password spraying..."
 #python3 brutespray.py --file $results_dir/ -U /usr/share/wordlist/user.txt -P /usr/share/wordlist/pass.txt -c -o password_spray_results
