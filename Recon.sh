@@ -41,6 +41,34 @@ echo "Performing port scan..."
 echo "Performing UDP Scan..."
 #nmap -p- -sC -sU -oA $results_dir/nmap_udp_scan "$IP"
 
+echo "Nmap Script Scan On Port Wise"
+nmap --script "ftp-anon,ftp-vuln*,ftp-*" -p 21 "$IP"
+nmap --script ssh-* -p 22 "$IP"
+nmap -n --script "*telnet* and safe" -p 23 "$IP"
+nmap --script "smtp-brute,smtp-commands,smtp-enum-users,smtp-ntlm-info,smtp-vuln-cve2011-1764,smtp-*" -p 25,465,587 --script-args smtp-ntlm-info.domain=example.com "$IP"
+nmap -sU --script "ntp-info,ntp-monlist,ntp*,ntp* and (discovery or vuln) and not (dos or brute)" -p 123 <target-ip>
+
+echo "Scanning for MSRPC TEST CASES"
+impacket-rpcdump -port 135 <target-ip> | grep -E 'MS-RPRN|MS-PAR'
+impacket-rpcdump -port 135 <target-ip>
+nmap --script msrpc-enum -p 135 <target-ip>
+
+echo "Scanning for SMB TEST CASES"
+nmap --script "smb-brute,smb-enum-shares.nse,smb-enum-users.nse,smb-enum*,smb-protocols,smb-vuln*" -p 445 <target-ip>
+enum4linux -a -v $IP
+netexec smb <target-ip> -u '' -p '' -M zerologon -M petitpotam
+smbmap -H <target-ip> -
+smbclient -N -L <target-ip>
+smbmap -u username -p password -H <target-ip> -x 'ipconfig'
+crackmapexec smb <target-ip> -u username -p password --users
+crackmapexec smb <target-ip> -u users.txt -p password --continue-on-success
+impacket-lookupsid example.local/user@<target-ip> 20000
+crackmapexec smb <target-ip> -u <username> -H hashes.txt
+
+
+
+
+
 echo "Looking for web-related vulnerabilities..."
 
 echo "$IP" | httpx -p '80,81,82,90,443,444,446,447,448,449,450,451,1947,5000,5800,8000,8443,8080,8081,8089,8888,1072,1556,1947,2068,2560,3128,3172,3387,3580,3582,3652,4343,4480,5000, 
