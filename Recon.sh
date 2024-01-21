@@ -44,8 +44,11 @@ echo "Performing UDP Scan..."
 echo "Nmap Script Scan On Port Wise"
 nmap --script "ftp-anon,ftp-vuln*,ftp-*" -p 21 "$IP"
 nmap --script ssh-* -p 22 "$IP"
+
 nmap -n --script "*telnet* and safe" -p 23 "$IP"
+
 nmap --script "smtp-brute,smtp-commands,smtp-enum-users,smtp-ntlm-info,smtp-vuln-cve2011-1764,smtp-*" -p 25,465,587 --script-args smtp-ntlm-info.domain=example.com "$IP"
+
 nmap -sU --script "ntp-info,ntp-monlist,ntp*,ntp* and (discovery or vuln) and not (dos or brute)" -p 123 <target-ip>
 
 echo "Scanning for MSRPC TEST CASES"
@@ -100,6 +103,19 @@ nmap --script "rdp-enum-encryption,rdp-ntlm-info,rdp*" -p 3389 <target-ip>
 #Brute Force Credentials
 hydra -l username -P passwords.txt <target-ip> rdp
 
+echo "Running SNMP checks ..."
+nmap -sU --script "snmp-info,snmp-interfaces,snmp-processes,snmp-sysdescr,snmp*" -p 161 <target-ip>
+#Brute Force the Community Names
+hydra -P /usr/share/seclists/Discovery/SNMP/common-snmp-community-strings.txt <target-ip> snmp
+#Snmp-Check is SNMP enumerator.
+snmp-check <target-ip> -p 161 -c public
+
+echo "Running NFS check..."
+nmap --script=nfs-ls,nfs-statfs,nfs-showmount -p 111,2049 <target-ip>
+
+echo "Running vnc checks..."
+nmap -sV --script vnc-info,realvnc-auth-bypass,vnc-title -p '5800,5801,5900,5901' <IP>
+msf> use auxiliary/scanner/vnc/vnc_none_auth; Spool $results_dir/vncmsf; Set rhosts $IP; run ;Spool off ; exit
 
 echo "Looking for web-related vulnerabilities..."
 
@@ -128,10 +144,7 @@ echo "Performing SMB enumeration..."
 cme smb "$IP" -u '' -p '' --shares 2>&1 | tee $results_dir/null_smb_open_shares
 cme smb "$IP" -u 'users.txt' -p 'password.txt' --shares 2>&1  | tee $results_dir/default_shares
 cme ssh "$IP" -u 'users.txt' -p 'password.txt' 2>&1  | tee $results_dir/ssh_pwned
-
 cme winrm "$IP" -u 'users.txt' -p 'password.txt' 2>&1 | tee $results_dir/winrm
-
-
 
 echo "Running password spraying..."
 #python3 brutespray.py --file $results_dir/ -U /usr/share/wordlist/user.txt -P /usr/share/wordlist/pass.txt -c -o password_spray_results
