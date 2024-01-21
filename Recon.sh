@@ -6,7 +6,7 @@
 # Description: This script automates various security testing tasks using a set of tools.
 #
 
-#set -e
+set -e
 
 # Tools Used:
 # - brutespray: Password spraying tool for various services
@@ -36,10 +36,10 @@ mkdir -p "$results_dir"
 # Function to perform a scan and save results
 
 echo "Performing port scan..."
-#nmap -p- -sC -sV -oA $results_dir/nmap_tcp_scan "$IP"
+nmap -p- -sC -sV -oA $results_dir/nmap_tcp_scan "$IP"
 
 echo "Performing UDP Scan..."
-#nmap -p- -sC -sU -oA $results_dir/nmap_udp_scan "$IP"
+nmap -p- -sC -sU -oA $results_dir/nmap_udp_scan "$IP"
 
 echo "Nmap Script Scan On Port Wise"
 nmap --script "ftp-anon,ftp-vuln*,ftp-*" -p 21 "$IP"
@@ -147,17 +147,17 @@ cme ssh "$IP" -u 'users.txt' -p 'password.txt' 2>&1  | tee $results_dir/ssh_pwne
 cme winrm "$IP" -u 'users.txt' -p 'password.txt' 2>&1 | tee $results_dir/winrm
 
 echo "Running password spraying..."
-#python3 brutespray.py --file $results_dir/ -U /usr/share/wordlist/user.txt -P /usr/share/wordlist/pass.txt -c -o password_spray_results
+python3 $HOME/tools/brutespray/brutespray.py --file $results_dir/ -U /usr/share/wordlist/user.txt -P /usr/share/wordlist/pass.txt -c -o password_spray_results
 
 echo "Checking for BlueKeep vulnerability..."
-#python3 bluekeep.py "$IP"
+python3 $HOME/tools/bluekeep.py "$IP"
 
 echo "Checking for SMBGhost vulnerability..."
-#python3 SMBGhost/scanner.py "$IP"
+python3  $HOME/tools/SMBGhost/scanner.py "$IP"
 
 echo "texttohtml"
 python3 /users/jai/text2html.py -i $results_dir -o $results_dir/results.html
 
-#echo "Script execution completed. Results stored in: $results_dir"
-#trap - ERR
-#cleanup
+echo "Script execution completed. Results stored in: $results_dir"
+trap - ERR
+cleanup
