@@ -1,4 +1,4 @@
-# Automated Security Testing Script
+# Automated Infra Testing Script
 
 ## Author
 Jai Kumar
