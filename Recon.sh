@@ -40,8 +40,7 @@ read -p "Enter the target IP address: " IP
 read -p "Enter the project name: " project_name
 
 # Set variables
-subnet_range=$(echo "$IP" | cut -d. -f1-3)
-results_dir="/Users/jai/reconresults/$project_name"
+results_dir="/$HOME/$project_name"
 mkdir -p "$results_dir"
 
  
