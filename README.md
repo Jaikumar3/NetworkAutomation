@@ -26,7 +26,7 @@ Make sure you have the following dependencies installed on your system before ru
 - go (for installing some tools)
 
 ## Usage
-1. Clone the repository: `git clone https://github.com/yourusername/yourrepository.git`
+1. Clone the repository: `git clone https://github.com/Jaikumar3/NetworkAutomation.git`
 2. Navigate to the script directory: `cd yourrepository`
 3. Make the script executable: `chmod +x recon.sh`
 4. Run the script: `./recon.sh`
