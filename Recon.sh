@@ -60,13 +60,13 @@ nmap -p- -sC -sU -oA $results_dir/nmap_udp_scan "$IP"
   echo -e "${GREEN}|  +---Nmap Script Scan---+         |${RESET}"
   echo -e "${GREEN}|      for 21,22,25                 |${RESET}"
   echo -e "${GREEN}+-----------------------------------+${RESET}"
+  
 nmap --script "ftp-anon,ftp-vuln*,ftp-*" -p 21 "$IP"
 nmap --script ssh-* -p 22 "$IP"
 nmap -n --script "*telnet* and safe" -p 23 "$IP"
 nmap --script "smtp-brute,smtp-commands,smtp-enum-users,smtp-ntlm-info,smtp-vuln-cve2011-1764,smtp-*" -p 25,465,587 --script-args smtp-ntlm-info.domain=example.com "$IP" | tee $results_dir/portwise_script_Scan_results
 nmap -sU --script "ntp-info,ntp-monlist,ntp*,ntp* and (discovery or vuln) and not (dos or brute)" -p 123 $IP | tee -a $results_dir/portwise_script_Scan_results
 
-echo -e "${GREEN}Scanning for MSRPC TEST CASES${RESET}"
   echo -e "${GREEN}+-----------------------------------+${RESET}"
   echo -e "${GREEN}|  Scanning for MSRPC TEST CASES$   |${RESET}"
   echo -e "${GREEN}|                                   |${RESET}"
@@ -78,13 +78,21 @@ impacket-rpcdump -port 135 $IP | grep -E 'MS-RPRN|MS-PAR' | tee -a $results_dir/
 impacket-rpcdump -port 135 $IP | tee -a $results_dir/MSRPC_overall_results
 nmap --script msrpc-enum -p 135 $IP | tee -a $results_dir/MSRPC_overall_results
 
-echo -e "${GREEN}Running RPC Login checks...${RESET}"
+  echo -e "${GREEN}+-----------------------------------+${RESET}"
+  echo -e "${GREEN}|  Running RPC Login checks...      |${RESET}"
+  echo -e "${GREEN}|                                   |${RESET}"
+  echo -e "${GREEN}+-----------------------------------+${RESET}"
+  
 rpcclient -U '' -N "$IP" -c enumdomusers 2>&1 | tee $results_dir/rpc-check.txt
 rpcclient -U '' -N "$IP" -c querydispinfo 2>&1 | tee -a $results_dir/rpc-check.txt
 rpcclient -U '' -N "$IP" -c enumdomains 2>&1 | tee -a $results_dir/rpc-check.txt
 rpcclient -U '' -N "$IP" -c enumdomgroups 2>&1 | tee -a $results_dir/rpc-check.txt
 
-echo -e "${GREEN}Scanning for SMB TEST CASES${RESET}"
+  echo -e "${GREEN}+-----------------------------------+${RESET}"
+  echo -e "${GREEN}|  Scanning for SMB TEST CASES      |${RESET}"
+  echo -e "${GREEN}|                                   |${RESET}"
+  echo -e "${GREEN}+-----------------------------------+${RESET}"
+
 nmap --script "smb-brute,smb-enum-shares.nse,smb-enum-users.nse,smb-enum*,smb-protocols,smb-vuln*" -p 445 $IP | tee $results_dir/SMB_overall_results
 enum4linux -a -v $IP | tee -a $results_dir/SMB_overall_results
 netexec smb $IP -u '' -p '' -M zerologon -M petitpotam | tee -a $results_dir/SMB_overall_results
@@ -96,63 +104,104 @@ crackmapexec smb $IP -u users.txt -p password --continue-on-success | tee -a $re
 impacket-lookupsid example.local/user@$IP 20000 | tee -a $results_dir/SMB_overall_results
 crackmapexec smb $IP -u <username> -H hashes.txt | tee -a $results_dir/SMB_overall_results
 
-echo -e "${GREEN}Running LDAP checks...${RESET}"
+  echo -e "${GREEN}+-----------------------------------+${RESET}"
+  echo -e "${GREEN}|  Scanning for LDAP TEST CASES     |${RESET}"
+  echo -e "${GREEN}|                                   |${RESET}"
+  echo -e "${GREEN}+-----------------------------------+${RESET}"
+
 nmap --script "ldap-brute,ldap-search,ldap-* and not brute" --script-args "ldap.base='cn=users,dc=cqure,dc=net'" -p 389 $IP | tee $results_dir/LDAP_overall_results
 # -k: Use Kerberos authentication
 netexec ldap $IP -u usernames.txt -p '' -k | tee -a $results_dir/LDAP_overall_results
 # --trusted-for-delegation: Enumerate computers and users with the flag `TRUSTED_FOR_DELEGATION`
 netexec ldap $IP -u username -p password --trusted-for-delegation | tee -a $results_dir/LDAP_overall_results
 
-echo -e "${GREEN}Running MSSQL checks...${RESET}"
+  echo -e "${GREEN}+-----------------------------------+${RESET}"
+  echo -e "${GREEN}|  Scanning for MSSQL TEST CASES     |${RESET}"
+  echo -e "${GREEN}|                                   |${RESET}"
+  echo -e "${GREEN}+-----------------------------------+${RESET}"
+  
 nmap --script ms-sql-info,ms-sql-empty-password,ms-sql-xp-cmdshell,ms-sql-config,ms-sql-ntlm-info,ms-sql-tables,ms-sql-hasdbaccess,ms-sql-dac,ms-sql-dump-hashes --script-args mssql.instance-port=1433,mssql.username=sa,mssql.password=,mssql.instance-name=MSSQLSERVER -sV -p 1433 $IP | tee $results_dir/mssql_results
 cme mssql "$IP" -u 'users.txt' -p 'password.txt' 2>&1  | tee -a $results_dir/mssql_results
 
-
-echo -e "${GREEN}Running MYSQL checks...${RESET}"
+  echo -e "${GREEN}+-----------------------------------+${RESET}"
+  echo -e "${GREEN}|  Scanning for MYSQL TEST CASES    |${RESET}"
+  echo -e "${GREEN}|                                   |${RESET}"
+  echo -e "${GREEN}+-----------------------------------+${RESET}"
+  
 nmap --script "mysql-info,mysql-enum,mysql-brute,mysql-databases,mysql-users,mysql-*" -p 3306 $IP | tee tee $results_dir/mysql_results
 
-echo -e "${GREEN}AJP${RESET}"
+  echo -e "${GREEN}+-----------------------------------+${RESET}"
+  echo -e "${GREEN}|  Scanning for AJP TEST CASES      |${RESET}"
+  echo -e "${GREEN}|                                   |${RESET}"
+  echo -e "${GREEN}+-----------------------------------+${RESET}"
+  
 nmap -sV --script ajp-auth,ajp-headers,ajp-methods,ajp-request -n -p 8009 $IP | tee tee $results_dir/apache_ajp_results
 
-echo -e "${GREEN}Running RDP checks...${RESET}"
+  echo -e "${GREEN}+-----------------------------------+${RESET}"
+  echo -e "${GREEN}|  Scanning for RDP  TEST CASES     |${RESET}"
+  echo -e "${GREEN}|                                   |${RESET}"
+  echo -e "${GREEN}+-----------------------------------+${RESET}"
+  
 nmap --script "rdp-enum-encryption,rdp-ntlm-info,rdp*" -p 3389 $IP | tee tee $results_dir/rdp_results
 #Brute Force Credentials
 hydra -l username -P passwords.txt $IP rdp | tee -a tee $results_dir/rdp_results
 
-echo -e "${GREEN}Running SNMP checks ...${RESET}"
+  echo -e "${GREEN}+-----------------------------------+${RESET}"
+  echo -e "${GREEN}|  Scanning for SNMP TEST CASES     |${RESET}"
+  echo -e "${GREEN}|                                   |${RESET}"
+  echo -e "${GREEN}+-----------------------------------+${RESET}"
+  
 nmap -sU --script "snmp-info,snmp-interfaces,snmp-processes,snmp-sysdescr,snmp*" -p 161 $IP
 #Brute Force the Community Names
 hydra -P /usr/share/seclists/Discovery/SNMP/common-snmp-community-strings.txt $IP snmp
 #Snmp-Check is SNMP enumerator.
 snmp-check $IP -p 161 -c public
 
-echo -e "${GREEN}Running NFS check...${RESET}"
+  echo -e "${GREEN}+-----------------------------------+${RESET}"
+  echo -e "${GREEN}|  Scanning for NFS  TEST CASES     |${RESET}"
+  echo -e "${GREEN}|                                   |${RESET}"
+  echo -e "${GREEN}+-----------------------------------+${RESET}"
 nmap --script=nfs-ls,nfs-statfs,nfs-showmount -p 111,2049 $IP | tee tee $results_dir/nfs_results
 
-echo -e "${GREEN}Running VNC checks...${RESET}"
+  echo -e "${GREEN}+-----------------------------------+${RESET}"
+  echo -e "${GREEN}|  Scanning for VNC TEST CASES     |${RESET}"
+  echo -e "${GREEN}|                                   |${RESET}"
+  echo -e "${GREEN}+-----------------------------------+${RESET}"
 nmap -sV --script vnc-info,realvnc-auth-bypass,vnc-title -p '5800,5801,5900,5901' $IP | tee tee $results_dir/vnc_results
-msf> use auxiliary/scanner/vnc/vnc_none_auth; Spool $results_dir/vncmsf; Set rhosts $IP; run ;Spool off ; exit
+msfconsole -q -x "use auxiliary/scanner/vnc/vnc_none_auth; spool $results_dir/vncmsf; set rhosts $IP; run ;spool off ; exit"
 
-echo -e "${GREEN}Running Docker checks...${RESET}"
+  echo -e "${GREEN}+-----------------------------------+${RESET}"
+  echo -e "${GREEN}|  Scanning for DOCKER TEST CASES   |${RESET}"
+  echo -e "${GREEN}|                                   |${RESET}"
+  echo -e "${GREEN}+-----------------------------------+${RESET}"
 #PORT 2375, 2376 Pentesting Docker
 nmap -sV --script "docker-*" -p 2375,2376 $IP  | tee  $results_dir/docker_Results
-msfconsole -q ;use exploit/linux/http/docker_daemon_tcp; spool $results_dir/docker_Results; set rhost $IP; run; spool off ; exit
+msfconsole -q -x "use exploit/linux/http/docker_daemon_tcp; spool $results_dir/docker_Results; set rhost $IP; run; spool off ; exit"
 
-echo -e "${GREEN}Running Postgresql checks...${RESET}"
+  echo -e "${GREEN}+-----------------------------------+${RESET}"
+  echo -e "${GREEN}|  Scanning for Postgresql TEST CASES     |${RESET}"
+  echo -e "${GREEN}|                                   |${RESET}"
+  echo -e "${GREEN}+-----------------------------------+${RESET}"
 #5432,5433 - Postgresql
-
-#Nmap enumeration
 nmap --script pgsql-brute -p 5432 <target-ip>
 #Brute Force Credentials
 hydra -l username -P passwords.txt <target-ip> postgres
 hydra -L usernames.txt -p password <target-ip> postgres
 
-echo -e "${GREEN}Looking for web-related vulnerabilities...${RESET}"
+  echo -e "${GREEN}+-----------------------------------+${RESET}"
+  echo -e "${GREEN}|  running for httpx                |${RESET}"
+  echo -e "${GREEN}|                                   |${RESET}"
+  echo -e "${GREEN}+-----------------------------------+${RESET}"
 
 echo "$IP" | httpx -p '80,81,82,90,443,444,446,447,448,449,450,451,1947,5000,5800,8000,8443,8080,8081,8089,8888,1072,1556,1947,2068,2560,3128,3172,3387,3580,3582,3652,4343,4480,5000, 
 5800,5900,5985,5986,8001,8030,8082,8083,8088,8089,8090,8443,8444,8445,8910,9001,9090,9091,20000' --title | tee $results_dir/httpxresults
 
 echo -e "${GREEN}Using nmap results grabbing web service${RESET}"
+  echo -e "${GREEN}+-----------------------------------+${RESET}"
+  echo -e "${GREEN}|  Using nmap results grabbing      |${RESET}"
+  echo -e "${GREEN}|           web service             |${RESET}"
+  echo -e "${GREEN}|                                   |${RESET}"
+  echo -e "${GREEN}+-----------------------------------+${RESET}"
 cat nmap_tcp_scan.xml | nmapurls | tee nmap_webservice_results
 
 echo -e "${GREEN}Running Nuclei scanning...${RESET}"
