@@ -45,16 +45,21 @@ mkdir -p "$results_dir"
 # Function to perform a scan and save results
 
   echo -e "${GREEN}+-----------------------------------+${RESET}"
-  echo -e "${GREEN}|  +---Nmap Script Scan---+        |${RESET}"
-  echo -e "${GREEN}|      Running Nmap                |${RESET}"
+  echo -e "${GREEN}|  +---Nmap Script Scan---+         |${RESET}"
+  echo -e "${GREEN}|      Running Nmap                 |${RESET}"
   echo -e "${GREEN}+-----------------------------------+${RESET}"
 nmap -p- -sC -sV -oA $results_dir/nmap_tcp_scan "$IP"
 
-echo -e "${GREEN}Performing UDP Scan...${RESET}"
+  echo -e "${GREEN}+-----------------------------------+${RESET}"
+  echo -e "${GREEN}|  +---Performing UDP Scan---+       |${RESET}"
+  echo -e "${GREEN}|                                    |${RESET}"
+  echo -e "${GREEN}+-----------------------------------+${RESET}"
 nmap -p- -sC -sU -oA $results_dir/nmap_udp_scan "$IP"
 
-echo -e "${GREEN}Nmap Script Scan for 21,22,25${RESET}"
-
+  echo -e "${GREEN}+-----------------------------------+${RESET}"
+  echo -e "${GREEN}|  +---Nmap Script Scan---+         |${RESET}"
+  echo -e "${GREEN}|      for 21,22,25                 |${RESET}"
+  echo -e "${GREEN}+-----------------------------------+${RESET}"
 nmap --script "ftp-anon,ftp-vuln*,ftp-*" -p 21 "$IP"
 nmap --script ssh-* -p 22 "$IP"
 nmap -n --script "*telnet* and safe" -p 23 "$IP"
@@ -62,6 +67,11 @@ nmap --script "smtp-brute,smtp-commands,smtp-enum-users,smtp-ntlm-info,smtp-vuln
 nmap -sU --script "ntp-info,ntp-monlist,ntp*,ntp* and (discovery or vuln) and not (dos or brute)" -p 123 $IP | tee -a $results_dir/portwise_script_Scan_results
 
 echo -e "${GREEN}Scanning for MSRPC TEST CASES${RESET}"
+  echo -e "${GREEN}+-----------------------------------+${RESET}"
+  echo -e "${GREEN}|  Scanning for MSRPC TEST CASES$   |${RESET}"
+  echo -e "${GREEN}|                                   |${RESET}"
+  echo -e "${GREEN}+-----------------------------------+${RESET}"
+
 # Find the Print System Remote Prototol or the Print System Asynchronous Remote Protocol
 impacket-rpcdump -port 135 $IP | grep -E 'MS-RPRN|MS-PAR' | tee -a $results_dir/MSRPC_overall_results
 # rpcdump for dumping RPC endpoints
