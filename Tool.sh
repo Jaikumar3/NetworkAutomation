@@ -25,6 +25,6 @@ wget -O exploit.py https://www.exploit-db.com/exploits/42315
 apt install pipx git
 pipx ensurepath
 pipx install git+https://github.com/Pennyw0rth/NetExec
-
+python3 -m pipx install impacket
 
 echo "All tools installed in the 'tools' folder."
