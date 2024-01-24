@@ -13,7 +13,7 @@ git clone https://github.com/Ekultek/BlueKeep.git
 git clone https://github.com/3ndG4me/AutoBlue-MS17-010.git
 sudo apt-get --assume-yes install git make gcc
 git clone https://github.com/robertdavidgraham/masscan
-cd $HOME/tools/masscan
+cd masscan
 make
 cd ..
 
@@ -36,7 +36,7 @@ pipx install git+https://github.com/Tib3rius/AutoRecon.git
 python3 -m pipx install impacket
 python3 -m pip install --user pipenv
 git clone https://github.com/layer8secure/SilentHound.git
-cd $HOME/tools/silenthound
+cd silenthound
 pipenv install
 
 echo "All tools installed in the 'tools' folder."
