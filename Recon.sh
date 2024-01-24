@@ -1,10 +1,9 @@
 #!/bin/bash
-#
+
 # Automated Security Testing Script
 # Author: Jai Kumar
 # Version: 1.0
 # Description: This script automates various security testing tasks using a set of tools.
-#
 
 set -e
 
@@ -42,7 +41,6 @@ read -p "Enter the project name: " project_name
 # Set variables
 results_dir="/$HOME/$project_name"
 mkdir -p "$results_dir"
-
  
 # Function to perform a scan and save results
 
@@ -122,13 +120,12 @@ echo -e "${GREEN}Running VNC checks...${RESET}"
 nmap -sV --script vnc-info,realvnc-auth-bypass,vnc-title -p '5800,5801,5900,5901' $IP | tee tee $results_dir/vnc_results
 msf> use auxiliary/scanner/vnc/vnc_none_auth; Spool $results_dir/vncmsf; Set rhosts $IP; run ;Spool off ; exit
 
-echo "Running Docker checks..."
+echo -e "${GREEN}Running Docker checks...${RESET}"
 #PORT 2375, 2376 Pentesting Docker
-
 nmap -sV --script "docker-*" -p 2375,2376 $IP  | tee  $results_dir/docker_Results
 msfconsole -q ;use exploit/linux/http/docker_daemon_tcp; spool $results_dir/docker_Results; set rhost $IP; run; spool off ; exit
 
-echo "Running Postgresql checks..."
+echo -e "${GREEN}Running Postgresql checks...${RESET}"
 #5432,5433 - Postgresql
 
 #Nmap enumeration
@@ -137,47 +134,47 @@ nmap --script pgsql-brute -p 5432 <target-ip>
 hydra -l username -P passwords.txt <target-ip> postgres
 hydra -L usernames.txt -p password <target-ip> postgres
 
-echo "Looking for web-related vulnerabilities..."
+echo -e "${GREEN}Looking for web-related vulnerabilities...${RESET}"
 
 echo "$IP" | httpx -p '80,81,82,90,443,444,446,447,448,449,450,451,1947,5000,5800,8000,8443,8080,8081,8089,8888,1072,1556,1947,2068,2560,3128,3172,3387,3580,3582,3652,4343,4480,5000, 
 5800,5900,5985,5986,8001,8030,8082,8083,8088,8089,8090,8443,8444,8445,8910,9001,9090,9091,20000' --title | tee $results_dir/httpxresults
 
-echo "Using nmap results grabing web service"
+echo -e "${GREEN}Using nmap results grabbing web service${RESET}"
 cat nmap_tcp_scan.xml | nmapurls | tee nmap_webservice_results
 
-echo "Running Nuclei scanning..."
+echo -e "${GREEN}Running Nuclei scanning...${RESET}"
 #cat $results_dir/httpxresults | nuclei | tee $results_dir/nucleiresults
 
-echo "Scanning for SMBv1, signing, and Windows details..."
+echo -e "${GREEN}Scanning for SMBv1, signing, and Windows details...${RESET}"
 cme smb "$IP" | tee $results_dir/smb_results
 
-echo "Extracting SMBv1 IPs..."
+echo -e "${GREEN}Extracting SMBv1 IPs...${RESET}"
 awk '/smbv1: true/{print $1, $4}' smb_results | tee $results_dir/smbv1_ips
 
-echo "Extracting SMB signing false IPs..."
+echo -e "${GREEN}Extracting SMB signing false IPs...${RESET}"
 awk '/signing: false/{print $1, $4}' smb_results | tee $results_dir/smbsigning_ips
 
-echo "Extracting Windows version information..."
+echo -e "${GREEN}Extracting Windows version information...${RESET}"
 awk '{print $3}' smb_results | tee $results_dir/windows_version
 
-echo "Performing SMB enumeration..."
+echo -e "${GREEN}Performing SMB enumeration...${RESET}"
 cme smb "$IP" -u '' -p '' --shares 2>&1 | tee $results_dir/null_smb_open_shares
 cme smb "$IP" -u 'users.txt' -p 'password.txt' --shares 2>&1  | tee $results_dir/default_shares
 cme ssh "$IP" -u 'users.txt' -p 'password.txt' 2>&1  | tee $results_dir/ssh_pwned
 cme winrm "$IP" -u 'users.txt' -p 'password.txt' 2>&1 | tee $results_dir/winrm
 
-echo "Running password spraying..."
+echo -e "${GREEN}Running password spraying...${RESET}"
 python3 $HOME/tools/brutespray/brutespray.py --file $results_dir/ -U /usr/share/wordlist/user.txt -P /usr/share/wordlist/pass.txt -c -o password_spray_results
 
-echo "Checking for BlueKeep vulnerability..."
+echo -e "${GREEN}Checking for BlueKeep vulnerability...${RESET}"
 python3 $HOME/tools/bluekeep.py "$IP" | tee -a $results_dir/rdp_results
 
-echo "Checking for SMBGhost vulnerability..."
+echo -e "${GREEN}Checking for SMBGhost vulnerability...${RESET}"
 python3  $HOME/tools/SMBGhost/scanner.py "$IP" | tee -a 
 
-echo "texttohtml"
+echo -e "${GREEN}Report generating into html${RESET}"
 python3 /users/jai/text2html.py -i $results_dir -o $results_dir/results.html
 
-echo "Script execution completed. Results stored in: $results_dir"
+echo -e "${GREEN}Script execution completed. Results stored in: $results_dir${RESET}"
 trap - ERR
 cleanup
