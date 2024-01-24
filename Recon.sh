@@ -47,37 +47,34 @@ mkdir -p "$results_dir"
  
 # Function to perform a scan and save results
 
-echo "Performing port scan..."
+echo -e "${GREEN}Performing port scan...${RESET}"
 nmap -p- -sC -sV -oA $results_dir/nmap_tcp_scan "$IP"
 
-echo "Performing UDP Scan..."
+echo -e "${GREEN}Performing UDP Scan...${RESET}"
 nmap -p- -sC -sU -oA $results_dir/nmap_udp_scan "$IP"
 
-echo "Nmap Script Scan for 21,22,25"
+echo -e "${GREEN}Nmap Script Scan for 21,22,25${RESET}"
 
 nmap --script "ftp-anon,ftp-vuln*,ftp-*" -p 21 "$IP"
 nmap --script ssh-* -p 22 "$IP"
-
 nmap -n --script "*telnet* and safe" -p 23 "$IP"
-
 nmap --script "smtp-brute,smtp-commands,smtp-enum-users,smtp-ntlm-info,smtp-vuln-cve2011-1764,smtp-*" -p 25,465,587 --script-args smtp-ntlm-info.domain=example.com "$IP" | tee $results_dir/portwise_script_Scan_results
-
 nmap -sU --script "ntp-info,ntp-monlist,ntp*,ntp* and (discovery or vuln) and not (dos or brute)" -p 123 $IP | tee -a $results_dir/portwise_script_Scan_results
 
-echo "Scanning for MSRPC TEST CASES"
+echo -e "${GREEN}Scanning for MSRPC TEST CASES${RESET}"
 # Find the Print System Remote Prototol or the Print System Asynchronous Remote Protocol
 impacket-rpcdump -port 135 $IP | grep -E 'MS-RPRN|MS-PAR' | tee -a $results_dir/MSRPC_overall_results
 # rpcdump for dumping RPC endpoints
 impacket-rpcdump -port 135 $IP | tee -a $results_dir/MSRPC_overall_results
 nmap --script msrpc-enum -p 135 $IP | tee -a $results_dir/MSRPC_overall_results
 
-echo "Running RPC Login checks..."
+echo -e "${GREEN}Running RPC Login checks...${RESET}"
 rpcclient -U '' -N "$IP" -c enumdomusers 2>&1 | tee $results_dir/rpc-check.txt
 rpcclient -U '' -N "$IP" -c querydispinfo 2>&1 | tee -a $results_dir/rpc-check.txt
 rpcclient -U '' -N "$IP" -c enumdomains 2>&1 | tee -a $results_dir/rpc-check.txt
 rpcclient -U '' -N "$IP" -c enumdomgroups 2>&1 | tee -a $results_dir/rpc-check.txt
 
-echo "Scanning for SMB TEST CASES"
+echo -e "${GREEN}Scanning for SMB TEST CASES${RESET}"
 nmap --script "smb-brute,smb-enum-shares.nse,smb-enum-users.nse,smb-enum*,smb-protocols,smb-vuln*" -p 445 $IP | tee $results_dir/SMB_overall_results
 enum4linux -a -v $IP | tee -a $results_dir/SMB_overall_results
 netexec smb $IP -u '' -p '' -M zerologon -M petitpotam | tee -a $results_dir/SMB_overall_results
@@ -89,39 +86,40 @@ crackmapexec smb $IP -u users.txt -p password --continue-on-success | tee -a $re
 impacket-lookupsid example.local/user@$IP 20000 | tee -a $results_dir/SMB_overall_results
 crackmapexec smb $IP -u <username> -H hashes.txt | tee -a $results_dir/SMB_overall_results
 
-echo "Running LDAP checks..."
+echo -e "${GREEN}Running LDAP checks...${RESET}"
 nmap --script "ldap-brute,ldap-search,ldap-* and not brute" --script-args "ldap.base='cn=users,dc=cqure,dc=net'" -p 389 $IP | tee $results_dir/LDAP_overall_results
 # -k: Use Kerberos authentication
 netexec ldap $IP -u usernames.txt -p '' -k | tee -a $results_dir/LDAP_overall_results
 # --trusted-for-delegation: Enumerate computers and users with the flag `TRUSTED_FOR_DELEGATION`
 netexec ldap $IP -u username -p password --trusted-for-delegation | tee -a $results_dir/LDAP_overall_results
 
-echo "Running MSSQL checks..."
+echo -e "${GREEN}Running MSSQL checks...${RESET}"
 nmap --script ms-sql-info,ms-sql-empty-password,ms-sql-xp-cmdshell,ms-sql-config,ms-sql-ntlm-info,ms-sql-tables,ms-sql-hasdbaccess,ms-sql-dac,ms-sql-dump-hashes --script-args mssql.instance-port=1433,mssql.username=sa,mssql.password=,mssql.instance-name=MSSQLSERVER -sV -p 1433 $IP | tee $results_dir/mssql_results
 cme mssql "$IP" -u 'users.txt' -p 'password.txt' 2>&1  | tee -a $results_dir/mssql_results
 
-echo "Running MYSQL checks..."
+
+echo -e "${GREEN}Running MYSQL checks...${RESET}"
 nmap --script "mysql-info,mysql-enum,mysql-brute,mysql-databases,mysql-users,mysql-*" -p 3306 $IP | tee tee $results_dir/mysql_results
 
-echo "AJP"
+echo -e "${GREEN}AJP${RESET}"
 nmap -sV --script ajp-auth,ajp-headers,ajp-methods,ajp-request -n -p 8009 $IP | tee tee $results_dir/apache_ajp_results
 
-echo" Running RDP checks..."
+echo -e "${GREEN}Running RDP checks...${RESET}"
 nmap --script "rdp-enum-encryption,rdp-ntlm-info,rdp*" -p 3389 $IP | tee tee $results_dir/rdp_results
 #Brute Force Credentials
 hydra -l username -P passwords.txt $IP rdp | tee -a tee $results_dir/rdp_results
 
-echo "Running SNMP checks ..."
+echo -e "${GREEN}Running SNMP checks ...${RESET}"
 nmap -sU --script "snmp-info,snmp-interfaces,snmp-processes,snmp-sysdescr,snmp*" -p 161 $IP
 #Brute Force the Community Names
 hydra -P /usr/share/seclists/Discovery/SNMP/common-snmp-community-strings.txt $IP snmp
 #Snmp-Check is SNMP enumerator.
 snmp-check $IP -p 161 -c public
 
-echo "Running NFS check..."
+echo -e "${GREEN}Running NFS check...${RESET}"
 nmap --script=nfs-ls,nfs-statfs,nfs-showmount -p 111,2049 $IP | tee tee $results_dir/nfs_results
 
-echo "Running vnc checks..."
+echo -e "${GREEN}Running VNC checks...${RESET}"
 nmap -sV --script vnc-info,realvnc-auth-bypass,vnc-title -p '5800,5801,5900,5901' $IP | tee tee $results_dir/vnc_results
 msf> use auxiliary/scanner/vnc/vnc_none_auth; Spool $results_dir/vncmsf; Set rhosts $IP; run ;Spool off ; exit
 
