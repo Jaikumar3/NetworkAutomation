@@ -44,7 +44,10 @@ mkdir -p "$results_dir"
  
 # Function to perform a scan and save results
 
-echo -e "${GREEN}Performing port scan...${RESET}"
+  echo -e "${GREEN}+-----------------------------------+${RESET}"
+  echo -e "${GREEN}|  +---Nmap Script Scan---+        |${RESET}"
+  echo -e "${GREEN}|      Running Nmap                |${RESET}"
+  echo -e "${GREEN}+-----------------------------------+${RESET}"
 nmap -p- -sC -sV -oA $results_dir/nmap_tcp_scan "$IP"
 
 echo -e "${GREEN}Performing UDP Scan...${RESET}"
