@@ -1,57 +1,47 @@
-# Network and Active Directory Automation Script
+# Automated Security Testing Script
 
-## Overview
+## Author
+Jai Kumar
 
-This script automates various network and Active Directory (AD) tasks using a set of tools. It includes features such as port scanning, web vulnerability scanning, SMB enumeration, password spraying, and checks for specific vulnerabilities like BlueKeep and SMBGhost.
+## Version
+1.0
 
-## Table of Contents
+## Description
+This script automates various security testing tasks using a set of tools. It covers a range of security assessments, including port scanning, vulnerability scanning, and enumeration of different services.
 
-- [Tools Used](#tools-used)
-- [Requirements](#requirements)
-- [Usage](#usage)
-- [Installation](#installation)
-- [Examples](#examples)
-- [Contributing](#contributing)
-- [License](#license)
-
-## Tools Used
-
-- [brutespray](https://github.com/x90skysn3k/brutespray): Password spraying tool for various services.
-- [httpx](https://github.com/projectdiscovery/httpx): Fast and multi-purpose HTTP toolkit.
-- [nuclei](https://github.com/projectdiscovery/nuclei): Fast and customizable vulnerability scanner.
-- [SMBGhost_RCE_PoC](https://github.com/chompie1337/SMBGhost_RCE_PoC): Tool to check for the SMBGhost vulnerability.
-- [AutoBlue-MS17-010](https://github.com/3ndG4me/AutoBlue-MS17-010): Automated exploitation tool for MS17-010.
-- ... (Include other tools and their GitHub links)
-
-## Requirements
-
-- Bash (Linux/Unix environment)
-- Go programming language (for installing httpx and nuclei)
-- Python (for running Python scripts)
-- Other dependencies as specified by the tools used
-
-## Installation
-- git clone https://github.com/yourusername/network-automation.git
-- cd network-automation
-- Chmod +x Tool.sh
-- ./Tool.sh
+## Dependencies
+Make sure you have the following dependencies installed on your system before running the script:
+- nmap
+- impacket
+- CrackMapExec (cme)
+- SMBGhost
+- hydra
+- snmp-check
+- enum4linux
+- smbmap
+- nuclei
+- httpx
+- brutespray
+- python3
+- go (for installing some tools)
 
 ## Usage
+1. Clone the repository: `git clone https://github.com/yourusername/yourrepository.git`
+2. Navigate to the script directory: `cd yourrepository`
+3. Make the script executable: `chmod +x recon.sh`
+4. Run the script: `./recon.sh`
 
-To use this script, provide the target IP address or subnet range as a command-line argument. The script will perform various tasks based on the specified tools.
+Follow the on-screen prompts to input the target IP address and project name. The script will perform various security tests and store results in a specified directory.
 
-## Run the recon script
-- Chmod +x recon.sh
-- ./recon.sh TargetIP or subnetrange
+## Results
+After the script execution is completed, the results will be stored in the specified directory. Check the directory for detailed results and reports.
 
-## Make sure your root user
+## Color Legend
+- Green: Information or success messages
+- Red: Error or warning messages
 
-## Contributing
+## Note
+Ensure that you have the required permissions to run the script and execute external tools. Some tools may require additional setup or configurations.
 
-If you would like to contribute or report issues, please open a GitHub issue or create a pull request.
-## License
-
-This script is licensed under the MIT License.
-
-Make sure to include details specific to your script, such as additional tools used, specific dependencies, and any other relevant information. Adjust the links and descriptions accordingly.
-
+## Disclaimer
+This script is provided as-is, and the author takes no responsibility for any misuse or damage caused by its usage. Use it responsibly and only on systems for which you have explicit permission.
