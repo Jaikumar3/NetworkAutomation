@@ -43,6 +43,7 @@ read -p "Enter the project name (e.g., Infra): " project_name
 # Set variables
 results_dir="/$HOME/$project_name"
 mkdir -p "$results_dir"
+nmap --script-updatedb
  
 # Function to perform a scan and save results
 
