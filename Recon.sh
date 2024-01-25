@@ -33,10 +33,10 @@ RESET='\033[0m'
 
 # Set variables
 # Prompt user for target IP address
-read -p "Enter the target IP address: " IP
+read -p "Enter the target IP address (e.g., 10.0.2.13): " IP
 
 # Prompt user for project name
-read -p "Enter the project name: " project_name
+read -p "Enter the project name (e.g., Infra): " project_name
 
 # Set variables
 results_dir="/$HOME/$project_name"
@@ -51,21 +51,22 @@ mkdir -p "$results_dir"
 nmap -p- -sC -sV -oA $results_dir/nmap_tcp_scan "$IP"
 
   echo -e "${GREEN}+-----------------------------------+${RESET}"
-  echo -e "${GREEN}|  +---Performing UDP Scan---+       |${RESET}"
-  echo -e "${GREEN}|                                    |${RESET}"
+  echo -e "${GREEN}|  +---Performing UDP Scan---+      |${RESET}"
+  echo -e "${GREEN}|                                   |${RESET}"
   echo -e "${GREEN}+-----------------------------------+${RESET}"
 nmap -p- -sC -sU -oA $results_dir/nmap_udp_scan "$IP"
 
   echo -e "${GREEN}+-----------------------------------+${RESET}"
-  echo -e "${GREEN}|  +---Nmap Script Scan---+         |${RESET}"
-  echo -e "${GREEN}|      for 21,22,25                 |${RESET}"
+  echo -e "${GREEN}|  +---Nmap enumeration---+         |${RESET}"
+  echo -e "${GREEN}|      Script Scan for 21,22,25     |${RESET}"
   echo -e "${GREEN}+-----------------------------------+${RESET}"
   
-nmap --script "ftp-anon,ftp-vuln*,ftp-*" -p 21 "$IP"
-nmap --script ssh-* -p 22 "$IP"
-nmap -n --script "*telnet* and safe" -p 23 "$IP"
-nmap --script "smtp-brute,smtp-commands,smtp-enum-users,smtp-ntlm-info,smtp-vuln-cve2011-1764,smtp-*" -p 25,465,587 --script-args smtp-ntlm-info.domain=example.com "$IP" | tee $results_dir/portwise_script_Scan_results
-nmap -sU --script "ntp-info,ntp-monlist,ntp*,ntp* and (discovery or vuln) and not (dos or brute)" -p 123 $IP | tee -a $results_dir/portwise_script_Scan_results
+nmap --script "ftp-anon,ftp-vuln*,ftp-*" -p 21 "$IP" -oN $results_dir/ftp
+nmap --script ssh-* -p 22 "$IP" | tee $results_dir/ssh_results
+cme ssh "$IP" -u 'users.txt' -p 'password.txt' 2>&1  | tee -a $results_dir/ssh_results
+nmap -n --script "*telnet* and safe" -p 23 "$IP"  -oN $results_dir/telenet
+nmap --script "smtp-brute,smtp-commands,smtp-enum-users,smtp-ntlm-info,smtp-vuln-cve2011-1764,smtp-*" -p 25,465,587 --script-args smtp-ntlm-info.domain=example.com "$IP" | tee $results_dir/smtp
+nmap -sU --script "ntp-info,ntp-monlist,ntp*,ntp* and (discovery or vuln) and not (dos or brute)" -p 123 $IP | tee -a $results_dir/ntp
 
   echo -e "${GREEN}+-----------------------------------+${RESET}"
   echo -e "${GREEN}|  Scanning for MSRPC TEST CASES$   |${RESET}"
@@ -103,6 +104,8 @@ crackmapexec smb $IP -u username -p password --users | tee -a $results_dir/SMB_o
 crackmapexec smb $IP -u users.txt -p password --continue-on-success | tee -a $results_dir/SMB_overall_results
 impacket-lookupsid example.local/user@$IP 20000 | tee -a $results_dir/SMB_overall_results
 crackmapexec smb $IP -u <username> -H hashes.txt | tee -a $results_dir/SMB_overall_results
+cme smb "$IP" -u '' -p '' --shares | tee -a $results_dir/SMB_overall_results
+
 
   echo -e "${GREEN}+-----------------------------------+${RESET}"
   echo -e "${GREEN}|  Scanning for LDAP TEST CASES     |${RESET}"
@@ -116,7 +119,7 @@ netexec ldap $IP -u usernames.txt -p '' -k | tee -a $results_dir/LDAP_overall_re
 netexec ldap $IP -u username -p password --trusted-for-delegation | tee -a $results_dir/LDAP_overall_results
 
   echo -e "${GREEN}+-----------------------------------+${RESET}"
-  echo -e "${GREEN}|  Scanning for MSSQL TEST CASES     |${RESET}"
+  echo -e "${GREEN}|  Scanning for MSSQL TEST CASES    |${RESET}"
   echo -e "${GREEN}|                                   |${RESET}"
   echo -e "${GREEN}+-----------------------------------+${RESET}"
   
@@ -154,7 +157,7 @@ hydra -l username -P passwords.txt $IP rdp | tee -a tee $results_dir/rdp_results
 nmap -sU --script "snmp-info,snmp-interfaces,snmp-processes,snmp-sysdescr,snmp*" -p 161 $IP
 #Brute Force the Community Names
 hydra -P /usr/share/seclists/Discovery/SNMP/common-snmp-community-strings.txt $IP snmp
-#Snmp-Check is SNMP enumerator.
+#Snmp-Check is SNMP enumerator
 snmp-check $IP -p 161 -c public
 
   echo -e "${GREEN}+-----------------------------------+${RESET}"
@@ -179,7 +182,7 @@ nmap -sV --script "docker-*" -p 2375,2376 $IP  | tee  $results_dir/docker_Result
 msfconsole -q -x "use exploit/linux/http/docker_daemon_tcp; spool $results_dir/docker_Results; set rhost $IP; run; spool off ; exit"
 
   echo -e "${GREEN}+-----------------------------------+${RESET}"
-  echo -e "${GREEN}|  Scanning for Postgresql TEST CASES     |${RESET}"
+  echo -e "${GREEN}| Scanning for Postgresql TEST CASES|${RESET}"
   echo -e "${GREEN}|                                   |${RESET}"
   echo -e "${GREEN}+-----------------------------------+${RESET}"
 #5432,5433 - Postgresql
@@ -189,14 +192,13 @@ hydra -l username -P passwords.txt <target-ip> postgres
 hydra -L usernames.txt -p password <target-ip> postgres
 
   echo -e "${GREEN}+-----------------------------------+${RESET}"
-  echo -e "${GREEN}|  running for httpx                |${RESET}"
+  echo -e "${GREEN}|  Running for httpx                |${RESET}"
   echo -e "${GREEN}|                                   |${RESET}"
   echo -e "${GREEN}+-----------------------------------+${RESET}"
 
 echo "$IP" | httpx -p '80,81,82,90,443,444,446,447,448,449,450,451,1947,5000,5800,8000,8443,8080,8081,8089,8888,1072,1556,1947,2068,2560,3128,3172,3387,3580,3582,3652,4343,4480,5000, 
 5800,5900,5985,5986,8001,8030,8082,8083,8088,8089,8090,8443,8444,8445,8910,9001,9090,9091,20000' --title | tee $results_dir/httpxresults
 
-echo -e "${GREEN}Using nmap results grabbing web service${RESET}"
   echo -e "${GREEN}+-----------------------------------+${RESET}"
   echo -e "${GREEN}|  Using nmap results grabbing      |${RESET}"
   echo -e "${GREEN}|           web service             |${RESET}"
@@ -204,37 +206,67 @@ echo -e "${GREEN}Using nmap results grabbing web service${RESET}"
   echo -e "${GREEN}+-----------------------------------+${RESET}"
 cat nmap_tcp_scan.xml | nmapurls | tee nmap_webservice_results
 
-echo -e "${GREEN}Running Nuclei scanning...${RESET}"
-#cat $results_dir/httpxresults | nuclei | tee $results_dir/nucleiresults
+  echo -e "${GREEN}+-----------------------------------+${RESET}"
+  echo -e "${GREEN}|  Running Nuclei scanning...       |${RESET}"
+  echo -e "${GREEN}|                                   |${RESET}"
+  echo -e "${GREEN}+-----------------------------------+${RESET}"
 
-echo -e "${GREEN}Scanning for SMBv1, signing, and Windows details...${RESET}"
+cat $results_dir/httpxresults | nuclei | tee $results_dir/nucleiresults
+
+  echo -e "${GREEN}+-----------------------------------+${RESET}"
+  echo -e "${GREEN}|  Scanning for SMBv1 signing, and  |${RESET}"
+  echo -e "${GREEN}|           Windows details...      |${RESET}"
+  echo -e "${GREEN}|                                   |${RESET}"
+  echo -e "${GREEN}+-----------------------------------+${RESET}"
+
 cme smb "$IP" | tee $results_dir/smb_results
 
-echo -e "${GREEN}Extracting SMBv1 IPs...${RESET}"
+  echo -e "${GREEN}+-----------------------------------+${RESET}"
+  echo -e "${GREEN}|      Extracting SMBv1 IPs         |${RESET}"
+  echo -e "${GREEN}|         and Hostname..            |${RESET}"
+  echo -e "${GREEN}|                                   |${RESET}"
+  echo -e "${GREEN}+-----------------------------------+${RESET}"
+
 awk '/smbv1: true/{print $1, $4}' smb_results | tee $results_dir/smbv1_ips
 
-echo -e "${GREEN}Extracting SMB signing false IPs...${RESET}"
+  echo -e "${GREEN}+-----------------------------------+${RESET}"
+  echo -e "${GREEN}|  Extracting SMB signing           |${RESET}"
+  echo -e "${GREEN}|    false IPs...                   |${RESET}"
+  echo -e "${GREEN}+-----------------------------------+${RESET}"
+
 awk '/signing: false/{print $1, $4}' smb_results | tee $results_dir/smbsigning_ips
 
-echo -e "${GREEN}Extracting Windows version information...${RESET}"
+  echo -e "${GREEN}+-----------------------------------+${RESET}"
+  echo -e "${GREEN}|   Extracting Windows              |${RESET}"
+  echo -e "${GREEN}|    version information...         |${RESET}"
+  echo -e "${GREEN}+-----------------------------------+${RESET}"
 awk '{print $3}' smb_results | tee $results_dir/windows_version
 
-echo -e "${GREEN}Performing SMB enumeration...${RESET}"
-cme smb "$IP" -u '' -p '' --shares 2>&1 | tee $results_dir/null_smb_open_shares
-cme smb "$IP" -u 'users.txt' -p 'password.txt' --shares 2>&1  | tee $results_dir/default_shares
-cme ssh "$IP" -u 'users.txt' -p 'password.txt' 2>&1  | tee $results_dir/ssh_pwned
-cme winrm "$IP" -u 'users.txt' -p 'password.txt' 2>&1 | tee $results_dir/winrm
+  echo -e "${GREEN}+-----------------------------------+${RESET}"
+  echo -e "${GREEN}|                                   |${RESET}"
+  echo -e "${GREEN}|    Running password spraying      |${RESET}"
+  echo -e "${GREEN}|                                   |${RESET}"
+  echo -e "${GREEN}+-----------------------------------+${RESET}"
 
-echo -e "${GREEN}Running password spraying...${RESET}"
 python3 $HOME/tools/brutespray/brutespray.py --file $results_dir/ -U /usr/share/wordlist/user.txt -P /usr/share/wordlist/pass.txt -c -o password_spray_results
 
-echo -e "${GREEN}Checking for BlueKeep vulnerability...${RESET}"
+  echo -e "${GREEN}+-----------------------------------+${RESET}"
+  echo -e "${GREEN}|  Checking for BlueKeep            |${RESET}"
+  echo -e "${GREEN}|     vulnerability...              |${RESET}"
+  echo -e "${GREEN}+-----------------------------------+${RESET}"
 python3 $HOME/tools/bluekeep.py "$IP" | tee -a $results_dir/rdp_results
 
-echo -e "${GREEN}Checking for SMBGhost vulnerability...${RESET}"
+  echo -e "${GREEN}+-----------------------------------+${RESET}"
+  echo -e "${GREEN}|  Checking for SMBGhost            |${RESET}"
+  echo -e "${GREEN}|     vulnerability...              |${RESET}"
+  echo -e "${GREEN}+-----------------------------------+${RESET}"
 python3  $HOME/tools/SMBGhost/scanner.py "$IP" | tee -a 
 
 echo -e "${GREEN}Report generating into html${RESET}"
+  echo -e "${GREEN}+-----------------------------------+${RESET}"
+  echo -e "${GREEN}|  Report generating into html      |${RESET}"
+  echo -e "${GREEN}|                                   |${RESET}"
+  echo -e "${GREEN}+-----------------------------------+${RESET}"
 python3 /users/jai/text2html.py -i $results_dir -o $results_dir/results.html
 
 echo -e "${GREEN}Script execution completed. Results stored in: $results_dir${RESET}"
