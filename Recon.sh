@@ -12,6 +12,8 @@ GREEN='\033[0;32m'
 RED='\033[0;31m'
 RESET='\033[0m'
 
+RED_LINE="${RED}================================================================================${RESET}"
+
 # Tools Used:
 # - brutespray: Password spraying tool for various services
 #   Installation: sudo apt-get install brutespray
@@ -50,6 +52,7 @@ mkdir -p "$results_dir"
   echo -e "${GREEN}+-----------------------------------+${RESET}"
 nmap -p- -sC -sV -oA $results_dir/nmap_tcp_scan "$IP"
 
+  echo -e $RED_LINE
   echo -e "${GREEN}+-----------------------------------+${RESET}"
   echo -e "${GREEN}|  +---Performing UDP Scan---+      |${RESET}"
   echo -e "${GREEN}|                                   |${RESET}"
