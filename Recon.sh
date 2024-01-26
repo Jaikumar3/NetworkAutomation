@@ -294,7 +294,7 @@ echo -e $RED_LINE
   echo -e "${GREEN}|                                   |${RESET}"
   echo -e "${GREEN}+-----------------------------------+${RESET}"
 
-python3 $HOME/tools/brutespray/brutespray.py --file $results_dir/ -U /usr/share/wordlist/user.txt -P /usr/share/wordlist/pass.txt -c -o password_spray_results
+python3 $HOME/tools/brutespray/brutespray.py --file $results_dir/nmap_tcp_scan -U /usr/share/wordlist/user.txt -P /usr/share/wordlist/pass.txt -c -o password_spray_results
 
 echo -e $RED_LINE
 
