@@ -319,7 +319,7 @@ echo -e "${GREEN}Report generating into html${RESET}"
   echo -e "${GREEN}|  Report generating into html      |${RESET}"
   echo -e "${GREEN}|                                   |${RESET}"
   echo -e "${GREEN}+-----------------------------------+${RESET}"
-python3 /users/jai/text2html.py -i $results_dir -o $results_dir/results.html
+python3 /users/jai/text2html.py -i $HOME/$results_dir -o $results_dir/results.html
 
 echo -e $RED_LINE
 echo -e $RED_LINE
