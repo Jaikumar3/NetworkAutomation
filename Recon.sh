@@ -44,6 +44,7 @@ read -p "Enter the project name (e.g., Infra): " project_name
 results_dir="/$HOME/$project_name"
 mkdir -p "$results_dir"
 nmap --script-updatedb
+prips $IP | tee $results_dir/list_hosts
  
 # Function to perform a scan and save results
 
@@ -94,10 +95,15 @@ echo -e $RED_LINE
   echo -e "${GREEN}|  Running RPC Login checks...      |${RESET}"
   echo -e "${GREEN}|                                   |${RESET}"
   echo -e "${GREEN}+-----------------------------------+${RESET}"
-  
+
+#NUll Scan
+# Enumerate users
 rpcclient -U '' -N "$IP" -c enumdomusers 2>&1 | tee $results_dir/rpc-check.txt
+# Domain info
 rpcclient -U '' -N "$IP" -c querydispinfo 2>&1 | tee -a $results_dir/rpc-check.txt
+# Enumerate domain users
 rpcclient -U '' -N "$IP" -c enumdomains 2>&1 | tee -a $results_dir/rpc-check.txt
+# Enumerate domain groups
 rpcclient -U '' -N "$IP" -c enumdomgroups 2>&1 | tee -a $results_dir/rpc-check.txt
 
 echo -e $RED_LINE
@@ -108,11 +114,19 @@ echo -e $RED_LINE
   echo -e "${GREEN}+-----------------------------------+${RESET}"
 
 nmap --script "smb-brute,smb-enum-shares.nse,smb-enum-users.nse,smb-enum*,smb-protocols,smb-vuln*" -p 445 $IP | tee $results_dir/SMB_overall_results
+#-a Do all simple enumeration (users,shares,os,password policy,groups).
 enum4linux -a -v $IP | tee -a $results_dir/SMB_overall_results
+# -M zerologon: Scan for ZeroLogon
+# -M petitpotam: Scan for PetitPotam
 netexec smb $IP -u '' -p '' -M zerologon -M petitpotam | tee -a $results_dir/SMB_overall_results
-smbmap -H $IP | tee -a $results_dir/SMB_overall_results
-smbclient -N -L $IP | tee -a $results_dir/SMB_overall_results
-smbmap -u username -p password -H $IP -x 'ipconfig' | tee -a $results_dir/SMB_overall_results
+# Recursive
+smbmap -H $IP -R | tee -a $results_dir/SMB_overall_results
+# -N: No password
+# -L: List shared directories
+smbclient -N -L $results_dir/list_hosts | tee -a $results_dir/SMB_overall_results
+# Execute a command
+smbmap -u username -p password --host-file $results_dir/list_hosts -x 'ipconfig' | tee -a $results_dir/SMB_overall_results
+# Find aother user
 crackmapexec smb $IP -u username -p password --users | tee -a $results_dir/SMB_overall_results
 crackmapexec smb $IP -u users.txt -p password --continue-on-success | tee -a $results_dir/SMB_overall_results
 impacket-lookupsid example.local/user@$IP 20000 | tee -a $results_dir/SMB_overall_results
