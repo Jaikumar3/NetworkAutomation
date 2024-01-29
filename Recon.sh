@@ -5,6 +5,7 @@
 # Version: 1.0
 # Description: This script automates various security testing tasks using a set of tools.
 
+# Error Handling
 set -e
 
 # Set color variables
@@ -345,6 +346,6 @@ echo -e $RED_LINE
 echo -e $RED_LINE
 echo -e $RED_LINE
 
-echo -e "${GREEN}Script execution completed. Results stored in: $results_dir${RESET}"
 trap - ERR
 cleanup
+echo -e "${GREEN}Script execution completed. Results stored in: $results_dir${RESET}"
