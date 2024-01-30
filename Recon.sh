@@ -64,7 +64,7 @@ msfconsole -q -x "use auxiliary/scanner/ftp/anonymous ; spool $results_dir/ftp_m
 nmap --script ssh-* -p 22 "$IP" | tee $results_dir/ssh_results
 crackmapexec ssh "$IP" -u 'users.txt' -p 'password.txt' 2>&1  | tee -a $results_dir/ssh_results.txt
 nmap -n --script "*telnet* and safe" -p 23 "$IP"  -oN $results_dir/telnet.txt
-nmap --script "smtp-brute,smtp-commands,smtp-enum-users,smtp-ntlm-info,smtp-vuln-cve2011-1764,smtp-*" -p 25,465,587 --script-args smtp-ntlm-info.domain=example.com "$IP" | tee $results_dir/smtp.txt
+nmap --script "smtp-brute,smtp-commands,smtp-enum-users,smtp-ntlm-info,smtp-vuln-cve2011-1764,smtp-*" -p 25,465,587  "$IP" | tee $results_dir/smtp.txt
 nmap -sU --script "ntp-info,ntp-monlist,ntp*,ntp* and (discovery or vuln) and not (dos or brute)" -p 123 $IP | tee -a $results_dir/ntp.txt
 
 echo -e $RED_LINE
