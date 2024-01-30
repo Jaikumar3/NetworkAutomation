@@ -89,13 +89,13 @@ echo -e $RED_LINE
 
 #NUll Scan
 # Enumerate users
-rpcclient -U '' -N "$IP" -c enumdomusers 2>&1 | tee $results_dir/rpc-check.txt
+rpcclient -U '' -N "$IP" -c enumdomusers | tee $results_dir/rpc-check.txt
 # Domain info
-rpcclient -U '' -N "$IP" -c querydispinfo 2>&1 | tee -a $results_dir/rpc-check.txt
+rpcclient -U '' -N "$IP" -c querydispinfo | tee -a $results_dir/rpc-check.txt
 # Enumerate domain users
-rpcclient -U '' -N "$IP" -c enumdomains 2>&1 | tee -a $results_dir/rpc-check.txt
+rpcclient -U '' -N "$IP" -c enumdomains  | tee -a $results_dir/rpc-check.txt
 # Enumerate domain groups
-rpcclient -U '' -N "$IP" -c enumdomgroups 2>&1 | tee -a $results_dir/rpc-check.txt
+rpcclient -U '' -N "$IP" -c enumdomgroups | tee -a $results_dir/rpc-check.txt
 
 echo -e $RED_LINE
 
@@ -181,6 +181,10 @@ echo -e $RED_LINE
 nmap --script "rdp-enum-encryption,rdp-ntlm-info,rdp*" -p 3389 $IP | tee $results_dir/rdp_results.txt
 #Brute Force Credentials
 hydra -l username -P passwords.txt $IP rdp | tee -a tee $results_dir/rdp_results.txt
+#"Terminal Service without NLA"
+msfconsole -q -x "use auxiliary/scanner/rdp/rdp_scanner ; spool $results_dir/rdp_nla.txt; set rhosts $IP; run ;spool off ; exit"
+#Ms12-020 Scanning
+msfconsole -q -x "auxiliary/scanner/rdp/ms12_020_check  ; spool $results_dir/rdp_ms12.txt; set rhosts $IP; run ;spool off ; exit"
 
 echo -e $RED_LINE
 
