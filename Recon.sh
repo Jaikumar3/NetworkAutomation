@@ -198,6 +198,8 @@ nmap -sU --script "snmp-info,snmp-interfaces,snmp-processes,snmp-sysdescr,snmp*"
 hydra -P /usr/share/seclists/Discovery/SNMP/common-snmp-community-strings.txt $IP snmp |  tee -a $results_dir/snmp.txt
 #Snmp-Check is SNMP enumerator
 snmp-check $IP -p 161 -c public | tee -a $results_dir/snmp.txt
+#SNMP Fileshare enumeration
+msfconsole -q -x "auxiliary/scanner/snmp/snmp_enum; spool $results_dir/rdp_ms12.txt; set rhosts $IP; run ;spool off ; exit"
 
 echo -e $RED_LINE
 
