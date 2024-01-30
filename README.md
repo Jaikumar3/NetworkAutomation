@@ -33,7 +33,7 @@ Make sure you have the following dependencies installed on your system before ru
 - Web service scanning using httpx.
 - Additional scans for SMBv1 IPs, SMB signing false IPs, Windows version information, and password spraying.
 - HTML report generation.
-- 
+  
 ## Usage
 1. Clone the repository: `git clone https://github.com/Jaikumar3/NetworkAutomation.git`
 2. Navigate to the script directory: `cd yourrepository`
