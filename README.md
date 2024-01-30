@@ -25,6 +25,15 @@ Make sure you have the following dependencies installed on your system before ru
 - python3
 - go (for installing some tools)
 
+## Features
+
+- Network scanning with Nmap
+- Service enumeration for FTP, SSH, Telnet, SMTP, NTP, MSRPC, RDP, SNMP, NFS, VNC, Docker, MSSQL, MySQL, AJP, LDAP, PostgreSQL, and more.
+- Vulnerability scanning for SMBv1, SMB signing, BlueKeep, SMBGhost, and others.
+- Web service scanning using httpx.
+- Additional scans for SMBv1 IPs, SMB signing false IPs, Windows version information, and password spraying.
+- HTML report generation.
+- 
 ## Usage
 1. Clone the repository: `git clone https://github.com/Jaikumar3/NetworkAutomation.git`
 2. Navigate to the script directory: `cd yourrepository`
