@@ -45,7 +45,14 @@ read -p "Enter the project name (e.g., Infra): " project_name
 results_dir="/$HOME/$project_name"
 mkdir -p "$results_dir"
 nmap --script-updatedb
-prips $IP | tee $results_dir/list_hosts
+# Check if target_ip is a single IP or a subnet
+if [[ $target_ip == *"/"* ]]; then
+    # It's a subnet, use prips
+    prips "$target_ip" | tee "$results_dir/list_hosts"
+else
+    # It's a single IP, don't use prips
+    echo "$target_ip" | tee "$results_dir/list_hosts"
+fi
  
 # Function to perform a scan and save results
 
