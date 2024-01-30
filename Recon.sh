@@ -240,7 +240,7 @@ echo -e $RED_LINE
   echo -e "${GREEN}+-----------------------------------+${RESET}"
 
 echo "$IP" | httpx -p '80,81,82,90,443,444,446,447,448,449,450,451,1947,5000,5800,8000,8443,8080,8081,8089,8888,1072,1556,1947,2068,2560,3128,3172,3387,3580,3582,3652,4343,4480,5000, 
-5800,5900,5985,5986,8001,8030,8082,8083,8088,8089,8090,8443,8444,8445,8910,9001,9090,9091,20000' --title | tee $results_dir/httpxresults.txt
+5800,5900,5985,5986,8001,8030,8082,8083,8088,8089,8090,8443,8444,8445,8910,9001,9090,9091,20000' --title --status-code --content-type -td -cdn --server| tee $results_dir/httpxresults.txt
 
 echo -e $RED_LINE
 
@@ -258,7 +258,7 @@ echo -e $RED_LINE
   echo -e "${GREEN}|                                   |${RESET}"
   echo -e "${GREEN}+-----------------------------------+${RESET}"
 
-cat $results_dir/httpxresults | nuclei | tee $results_dir/nucleiresults.txt
+cat $results_dir/list_hosts | nuclei | tee $results_dir/nucleiresults.txt
 
 echo -e $RED_LINE
 
