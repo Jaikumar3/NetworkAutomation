@@ -39,7 +39,7 @@ Make sure you have the following dependencies installed on your system before ru
 2. Navigate to the script directory: `cd yourrepository`
 3. Make the script executable: `chmod +x recon.sh`
 4. Run the script: `./recon.sh`
-5. Make sure your are the root user
+5. Make sure your are the **root user**
 
 Follow the on-screen prompts to input the target IP address and project name. The script will perform various security tests and store results in a specified directory.
 
