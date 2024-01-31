@@ -5,7 +5,7 @@ mkdir -p $HOME/tools
 cd tools
 
 echo "Cloning and installing tools..."
-
+wget https://gist.githubusercontent.com/affilares/36f2b66c2f7c67894d6a492c986499ae/raw/2b0734fc790812a5180a890db91d198ede5a9c8e/text2html.py
 git clone https://github.com/x90skysn3k/brutespray.git
 git clone https://github.com/chompie1337/SMBGhost_RCE_PoC.git
 git clone https://github.com/Barriuso/SMBGhost_AutomateExploitation
