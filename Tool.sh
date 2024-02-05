@@ -20,6 +20,7 @@ cd ..
 # Assuming you have Go installed and the GOPATH/bin is in your PATH
 echo "Installing httpx..."
 go install -v github.com/projectdiscovery/httpx/cmd/httpx@latest
+go install github.com/pry0cc/tew@latest 
 
 echo "Installing nuclei..."
 go install -v github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest
