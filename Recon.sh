@@ -259,7 +259,8 @@ echo -e $RED_LINE
   echo -e "${GREEN}|           web service             |${RESET}"
   echo -e "${GREEN}|                                   |${RESET}"
   echo -e "${GREEN}+-----------------------------------+${RESET}"
-cat $results_dir/nmap_tcp_scan.xml | nmapurls | tee nmap_webservice_results.txt
+cat $results_dir/nmap_tcp_scan.xml | nmapurls | tee $results_dir/nmap_webservice_results.txt
+cat $results_dir/nmap_tcp_scan.xml | nmapurls | tee -a n$results_dir/map_webservice_results.txt
 cat $results_dir/httpx_without_noise.txt nmap_webservice_results.txt | anew | tee $results_dir/httpx.txt
 
 echo -e $RED_LINE
