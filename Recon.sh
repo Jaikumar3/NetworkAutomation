@@ -119,7 +119,7 @@ smbclient -N -L $results_dir/list_hosts | tee -a $results_dir/SMB_overall_result
 smbmap -u username -p password --host-file $results_dir/list_hosts -x 'ipconfig' | tee -a $results_dir/SMB_overall_results.txt
 # Find aother user
 crackmapexec smb $IP -u username -p password --users | tee -a $results_dir/SMB_overall_results.txt
-crackmapexec smb $IP -u users.txt -p password --continue-on-success | tee -a $results_dir/SMB_overall_results.txt
+#crackmapexec smb $IP -u users.txt -p password --continue-on-success | tee -a $results_dir/SMB_overall_results.txt
 #Perform RID cycling attack against a DC with SMB null sessions allowed with impacket-lookupsid
 # Anonymous logon
 # 20000: Maximum RID to be cycled
