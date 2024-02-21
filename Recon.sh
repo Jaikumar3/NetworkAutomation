@@ -290,7 +290,7 @@ echo -e $RED_LINE
   echo -e "${GREEN}|                                   |${RESET}"
   echo -e "${GREEN}+-----------------------------------+${RESET}"
 
-awk '/smbv1: true/{print $1, $4}' smb_results | tee $results_dir/smbv1_ips.txt
+#awk '/smbv1: true/{print $1, $4}' smb_results | tee $results_dir/smbv1_ips.txt
 
 echo -e $RED_LINE
 
@@ -299,7 +299,7 @@ echo -e $RED_LINE
   echo -e "${GREEN}|    false IPs...                   |${RESET}"
   echo -e "${GREEN}+-----------------------------------+${RESET}"
 
-awk '/signing: false/{print $1, $4}' smb_results | tee $results_dir/smbsigning_ips.txt
+#awk '/signing: false/{print $1, $4}' smb_results | tee $results_dir/smbsigning_ips.txt
 
 echo -e $RED_LINE
 
@@ -307,7 +307,7 @@ echo -e $RED_LINE
   echo -e "${GREEN}|   Extracting Windows              |${RESET}"
   echo -e "${GREEN}|    version information...         |${RESET}"
   echo -e "${GREEN}+-----------------------------------+${RESET}"
-awk '{print $3}' smb_results | tee $results_dir/windows_version.txt
+#awk '{print $3}' smb_results | tee $results_dir/windows_version.txt
 
 echo -e $RED_LINE
 
@@ -317,7 +317,7 @@ echo -e $RED_LINE
   echo -e "${GREEN}|                                   |${RESET}"
   echo -e "${GREEN}+-----------------------------------+${RESET}"
 
-python3 $HOME/tools/brutespray/brutespray.py --file $results_dir/nmap_tcp_scan.gnmap -U /usr/share/wordlist/user.txt -P /usr/share/wordlist/pass.txt -c -o $results_dir/password_spray_results.txt
+brutespray --file $results_dir/nmap_tcp_scan.gnmap -U /home/vaptadmin/jai/usernames.txt -P /home/vptadmin/jai/password.txt -c -o $results_dir/password_spray_results.txt
 
 echo -e $RED_LINE
 
@@ -333,7 +333,7 @@ echo -e $RED_LINE
   echo -e "${GREEN}|  Checking for SMBGhost            |${RESET}"
   echo -e "${GREEN}|     vulnerability...              |${RESET}"
   echo -e "${GREEN}+-----------------------------------+${RESET}"
-python3  $HOME/tools/SMBGhost/scanner.py "$IP" | tee -a $results_dir/smbghost.txt
+#python3  $HOME/tools/SMBGhost/scanner.py "$IP" | tee -a $results_dir/smbghost.txt
 
 echo -e $RED_LINE
 
