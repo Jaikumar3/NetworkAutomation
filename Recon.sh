@@ -118,7 +118,7 @@ smbclient -N -L $results_dir/list_hosts | tee -a $results_dir/SMB_overall_result
 # Execute a command
 #smbmap -u username -p password --host-file $results_dir/list_hosts -x 'ipconfig' | tee -a $results_dir/SMB_overall_results.txt
 # Find aother user
-crackmapexec smb $IP -u /home/vaptadmin/jai/usernames.txt -p /home/vaptadmin/jai/password.txt --users | tee -a $results_dir/SMB_overall_results.txt
+crackmapexec smb $IP -u /home/vaptadmin/jai/usernames.txt -p /home/vaptadmin/jai/password.txt --users 2>&1 | tee -a $results_dir/SMB_overall_results.txt
 #crackmapexec smb $IP -u /home/vaptadmin/jai/usernames.txt -p /home/vaptadmin/jai/password.txt --continue-on-success | tee -a $results_dir/SMB_overall_results.txt
 #Perform RID cycling attack against a DC with SMB null sessions allowed with impacket-lookupsid
 # Anonymous logon
