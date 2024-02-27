@@ -109,7 +109,7 @@ nmap --script "smb-brute,smb-enum-shares.nse,smb-enum-users.nse,smb-enum*,smb-pr
 enum4linux -a -v $IP | tee -a $results_dir/SMB_overall_results.txt
 # -M zerologon: Scan for ZeroLogon
 # -M petitpotam: Scan for PetitPotam
-#netexec smb $IP -u '' -p '' -M zerologon -M petitpotam | tee -a $results_dir/SMB_overall_results.txt
+netexec smb $IP -u '' -p '' -M zerologon -M petitpotam | tee -a $results_dir/SMB_overall_results.txt
 # Recursive
 smbmap -H $IP -R | tee -a $results_dir/SMB_overall_results.txt
 # -N: No password
@@ -259,7 +259,7 @@ echo -e $RED_LINE
   echo -e "${GREEN}|           web service             |${RESET}"
   echo -e "${GREEN}|                                   |${RESET}"
   echo -e "${GREEN}+-----------------------------------+${RESET}"
-#cat $results_dir/nmap_tcp_scan.xml | nmapurls | tee $results_dir/nmap_webservice_results.txt
+cat $results_dir/nmap_tcp_scan.xml | nmapurls | tee $results_dir/nmap_webservice_results.txt
 cat $results_dir/nmap_tcp_scan.xml | /home/vaptadmin/jai/tools/./tew | tee -a n$results_dir/map_webservice_results.txt
 cat $results_dir/httpx_without_noise.txt nmap_webservice_results.txt | anew | tee $results_dir/httpx.txt
 
