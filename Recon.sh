@@ -184,7 +184,7 @@ hydra -l username -P passwords.txt $IP rdp | tee -a tee $results_dir/rdp_results
 #"Terminal Service without NLA"
 msfconsole -q -x "use auxiliary/scanner/rdp/rdp_scanner ; spool $results_dir/rdp_nla.txt; set rhosts $IP; run ;spool off ; exit"
 #Ms12-020 Scanning
-msfconsole -q -x "auxiliary/scanner/rdp/ms12_020_check  ; spool $results_dir/rdp_ms12.txt; set rhosts $IP; run ;spool off ; exit"
+msfconsole -q -x "use auxiliary/scanner/rdp/ms12_020_check  ; spool $results_dir/rdp_ms12.txt; set rhosts $IP; run ;spool off ; exit"
 
 echo -e $RED_LINE
 
@@ -199,7 +199,7 @@ hydra -P /usr/share/seclists/Discovery/SNMP/common-snmp-community-strings.txt $I
 #Snmp-Check is SNMP enumerator
 snmp-check $IP -p 161 -c public | tee -a $results_dir/snmp.txt
 #SNMP Fileshare enumeration
-msfconsole -q -x "auxiliary/scanner/snmp/snmp_enum; spool $results_dir/rdp_ms12.txt; set rhosts $IP; run ;spool off ; exit"
+msfconsole -q -x "use auxiliary/scanner/snmp/snmp_enum; spool $results_dir/rdp_ms12.txt; set rhosts $IP; run ;spool off ; exit"
 
 echo -e $RED_LINE
 
