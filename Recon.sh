@@ -29,10 +29,10 @@ nmap --script-updatedb
 # Check if target_ip is a single IP or a subnet
 if [[ $target_ip == *"/"* ]]; then
     # It's a subnet, use prips
-    prips "$target_ip" | tee "$results_dir/list_hosts"
+    prips "$target_ip" > tee "$results_dir/list_hosts"
 else
     # It's a single IP, don't use prips
-    echo "$target_ip" | tee "$results_dir/list_hosts"
+    echo "$target_ip" > tee "$results_dir/list_hosts"
 fi
  
 # Function to perform a scan and save results
