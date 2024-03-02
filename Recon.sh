@@ -24,7 +24,7 @@ read -p "Enter the project name (e.g., Infra): " project_name
 
 # Set variables
 results_dir="/$HOME/$project_name"
-mkdir -p "$results_dir"
+mkdir -p "$results_dir" "$results_dir/SMB" "$results_dir/FTP" "$results_dir/MSSQL" "$results_dir/NMAP" "$results_dir/SSH" "$results_dir/NTP" "$results_dir/LDAP" "$results_dir/MSRPC" "$results_dir/DOCKER" "$results_dir/RDP" "$results_dir/SNMP" "$results_dir/NUCLEI" "$results_dir/AJP" 
 nmap --script-updatedb
 # Check if target_ip is a single IP or a subnet
 if [[ $target_ip == *"/"* ]]; then
