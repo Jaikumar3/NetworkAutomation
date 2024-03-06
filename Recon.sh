@@ -24,7 +24,7 @@ read -p "Enter the project name (e.g., Infra): " project_name
 
 # Set variables
 results_dir="/$HOME/$project_name"
-mkdir -p "$results_dir" "$results_dir/SMB" "$results_dir/FTP" "$results_dir/MSSQL" "$results_dir/NMAP" "$results_dir/SSH" "$results_dir/NTP" "$results_dir/LDAP" "$results_dir/MSRPC" "$results_dir/DOCKER" "$results_dir/RDP" "$results_dir/SNMP" "$results_dir/NUCLEI" "$results_dir/AJP" "$results_dir/httpx" 
+mkdir -p "$results_dir" "$results_dir/SMB" "$results_dir/FTP" "$results_dir/MSSQL" "$results_dir/NMAP" "$results_dir/SSH" "$results_dir/NTP" "$results_dir/LDAP" "$results_dir/MSRPC" "$results_dir/DOCKER" "$results_dir/RDP" "$results_dir/SNMP" "$results_dir/NUCLEI" "$results_dir/AJP" "$results_dir/httpx"  "$results_dir/nmap"
 nmap --script-updatedb
 # Check if target_ip is a single IP or a subnet
 if [[ $target_ip == *"/"* ]]; then
@@ -41,7 +41,7 @@ fi
   echo -e "${GREEN}|  +---Nmap Script Scan---+         |${RESET}"
   echo -e "${GREEN}|      Running Nmap                 |${RESET}"
   echo -e "${GREEN}+-----------------------------------+${RESET}"
-nmap -p- -sC -sV -oA $results_dir/nmap_tcp_scan "$IP"
+nmap -p- -sC -sV -oA $results_dir/nmap/nmap_tcp_scan "$IP"
 
   echo -e $RED_LINE
   
@@ -49,7 +49,7 @@ nmap -p- -sC -sV -oA $results_dir/nmap_tcp_scan "$IP"
   echo -e "${GREEN}|  +---Performing UDP Scan---+      |${RESET}"
   echo -e "${GREEN}|                                   |${RESET}"
   echo -e "${GREEN}+-----------------------------------+${RESET}"
-nmap -p- -sC -sU -oA $results_dir/nmap_udp_scan "$IP"
+nmap -p- -sC -sU -oA $results_dir/namp/nmap_udp_scan "$IP"
 
 echo -e $RED_LINE
 
