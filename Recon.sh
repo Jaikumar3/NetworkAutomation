@@ -24,7 +24,7 @@ read -p "Enter the project name (e.g., Infra): " project_name
 
 # Set variables
 results_dir="/$HOME/$project_name"
-mkdir -p "$results_dir" "$results_dir/SMB" "$results_dir/FTP" "$results_dir/MSSQL" "$results_dir/NMAP" "$results_dir/SSH" "$results_dir/NTP" "$results_dir/LDAP" "$results_dir/MSRPC" "$results_dir/DOCKER" "$results_dir/RDP" "$results_dir/SNMP" "$results_dir/NUCLEI" "$results_dir/AJP" "$results_dir/httpx"  "$results_dir/nmap"
+mkdir -p "$results_dir" "$results_dir/SMB" "$results_dir/FTP" "$results_dir/MSSQL" "$results_dir/NMAP" "$results_dir/SSH" "$results_dir/NTP" "$results_dir/LDAP" "$results_dir/MSRPC" "$results_dir/DOCKER" "$results_dir/RDP" "$results_dir/SNMP" "$results_dir/NUCLEI" "$results_dir/AJP" "$results_dir/HTTPX"  "$results_dir/NMAP" "$results_dir/
 nmap --script-updatedb
 # Check if target_ip is a single IP or a subnet
 if [[ $target_ip == *"/"* ]]; then
@@ -41,7 +41,7 @@ fi
   echo -e "${GREEN}|  +---Nmap Script Scan---+         |${RESET}"
   echo -e "${GREEN}|      Running Nmap                 |${RESET}"
   echo -e "${GREEN}+-----------------------------------+${RESET}"
-nmap -p- -sC -sV -oA $results_dir/nmap/nmap_tcp_scan "$IP"
+nmap -p- -sC -sV -oA $results_dir/NMAP/nmap_tcp_scan "$IP"
 
   echo -e $RED_LINE
   
@@ -49,7 +49,7 @@ nmap -p- -sC -sV -oA $results_dir/nmap/nmap_tcp_scan "$IP"
   echo -e "${GREEN}|  +---Performing UDP Scan---+      |${RESET}"
   echo -e "${GREEN}|                                   |${RESET}"
   echo -e "${GREEN}+-----------------------------------+${RESET}"
-nmap -p- -sC -sU -oA $results_dir/namp/nmap_udp_scan "$IP"
+nmap -p- -sC -sU -oA $results_dir/NMAP/nmap_udp_scan "$IP"
 
 echo -e $RED_LINE
 
@@ -58,14 +58,14 @@ echo -e $RED_LINE
   echo -e "${GREEN}|      Script Scan for 21,22,25     |${RESET}"
   echo -e "${GREEN}+-----------------------------------+${RESET}"
   
-nmap --script "ftp-anon,ftp-vuln*,ftp-*" -p 21 "$IP" -oN $results_dir/ftp.txt
-msfconsole -q -x "use auxiliary/scanner/ftp/anonymous ; spool $results_dir/ftp_msf.txt; set rhosts $IP; set password anonymous; run ;spool off ; exit"
+nmap --script "ftp-anon,ftp-vuln*,ftp-*" -p 21 "$IP" -oN $results_dir/FTP/ftp_nmap.txt
+msfconsole -q -x "use auxiliary/scanner/ftp/anonymous ; spool $results_dir/FTP/ftp_msf.txt; set rhosts $IP; set password anonymous; run ;spool off ; exit"
 
-nmap --script ssh-* -p 22 "$IP" | tee $results_dir/ssh_results
-crackmapexec ssh "$IP" -u '/home/vaptadmin/jai/usernames.txt' -p '/home/vaptadmin/jai/password.txt' 2>&1  | tee -a $results_dir/ssh_results.txt
-nmap -n --script "*telnet* and safe" -p 23 "$IP"  -oN $results_dir/telnet.txt
-nmap --script "smtp-brute,smtp-commands,smtp-enum-users,smtp-ntlm-info,smtp-vuln-cve2011-1764,smtp-*" -p 25,465,587  "$IP" | tee $results_dir/smtp.txt
-nmap -sU --script "ntp-info,ntp-monlist,ntp*,ntp* and (discovery or vuln) and not (dos or brute)" -p 123 $IP | tee -a $results_dir/ntp.txt
+nmap --script ssh-* -p 22 "$IP" | tee $results_dir/SSH/ssh_nmap.txt
+crackmapexec ssh "$IP" -u '/home/vaptadmin/jai/usernames.txt' -p '/home/vaptadmin/jai/password.txt' 2>&1  | tee -a $results_dir/SSH/ssh_cme.txt
+nmap -n --script "*telnet* and safe" -p 23 "$IP"  -oN $results_dir/TELNET/telnet_nmap.txt
+nmap --script "smtp-brute,smtp-commands,smtp-enum-users,smtp-ntlm-info,smtp-vuln-cve2011-1764,smtp-*" -p 25,465,587  "$IP" | tee $results_dir/SMTP/smtp_nmap.txt
+nmap -sU --script "ntp-info,ntp-monlist,ntp*,ntp* and (discovery or vuln) and not (dos or brute)" -p 123 $IP | tee -a $results_dir/NTP/ntp.txt
 
 echo -e $RED_LINE
 
@@ -75,10 +75,10 @@ echo -e $RED_LINE
   echo -e "${GREEN}+-----------------------------------+${RESET}"
 
 # Find the Print System Remote Prototol or the Print System Asynchronous Remote Protocol
-impacket-rpcdump -port 135 $IP | grep -E 'MS-RPRN|MS-PAR' | tee -a $results_dir/MSRPC_overall_results.txt
+impacket-rpcdump -port 135 $IP | grep -E 'MS-RPRN|MS-PAR' | tee -a $results_dir/MSRPC/MSRPC_PRINT.txt
 # rpcdump for dumping RPC endpoints
-impacket-rpcdump -port 135 $IP | tee -a $results_dir/MSRPC_overall_results.txt
-nmap --script msrpc-enum -p 135 $IP | tee -a $results_dir/MSRPC_overall_results.txt
+impacket-rpcdump -port 135 $IP | tee -a $results_dir/MSRPC/RPCDUMP.txt
+nmap --script msrpc-enum -p 135 $IP | tee -a $results_dir/MSRPC/nmap.txt
 
 echo -e $RED_LINE
 
@@ -89,13 +89,13 @@ echo -e $RED_LINE
 
 #NUll Scan
 # Enumerate users
-rpcclient -U '' -N "$IP" -c enumdomusers | tee $results_dir/rpc-check.txt
+rpcclient -U '' -N "$IP" -c enumdomusers | tee $results_dir/MSRPC/rpc-check.txt
 # Domain info
-rpcclient -U '' -N "$IP" -c querydispinfo | tee -a $results_dir/rpc-check.txt
+rpcclient -U '' -N "$IP" -c querydispinfo | tee -a $results_dir/MSRPC/rpc-check.txt
 # Enumerate domain users
-rpcclient -U '' -N "$IP" -c enumdomains  | tee -a $results_dir/rpc-check.txt
+rpcclient -U '' -N "$IP" -c enumdomains  | tee -a $results_dir/MSRPC/rpc-check.txt
 # Enumerate domain groups
-rpcclient -U '' -N "$IP" -c enumdomgroups | tee -a $results_dir/rpc-check.txt
+rpcclient -U '' -N "$IP" -c enumdomgroups | tee -a $results_dir/MSRPC/rpc-check.txt
 
 echo -e $RED_LINE
 
