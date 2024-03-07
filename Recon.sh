@@ -343,7 +343,7 @@ echo -e "${GREEN}Report generating into html${RESET}"
   echo -e "${GREEN}|                                   |${RESET}"
   echo -e "${GREEN}+-----------------------------------+${RESET}"
 python3 /users/jai/text2html.py -i $HOME/$results_dir -o $results_dir/results.html
-namp_parser $results_dir/nmap_tcp_scan.gnmap --summary --unique 
+#namp_parser $results_dir/nmap_tcp_scan.gnmap --summary --unique 
 
 echo -e $RED_LINE
 echo -e $RED_LINE
