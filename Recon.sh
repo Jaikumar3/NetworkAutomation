@@ -23,8 +23,17 @@ read -p "Enter the target IP address (e.g., 10.0.2.13): " IP
 read -p "Enter the project name (e.g., Infra): " project_name
 
 # Set variables
-results_dir="/$HOME/$project_name"
-mkdir -p "$results_dir" "$results_dir/SMB" "$results_dir/FTP" "$results_dir/MSSQL" "$results_dir/NMAP" "$results_dir/SSH" "$results_dir/NTP" "$results_dir/LDAP" "$results_dir/MSRPC" "$results_dir/DOCKER" "$results_dir/RDP" "$results_dir/SNMP" "$results_dir/NUCLEI" "$results_dir/AJP" "$results_dir/HTTPX"  "$results_dir/NMAP" "$results_dir/PostgreSQL" "$results_dir/SMTP" "$results_dir/VNC"
+results_dir="$HOME/$project_name"
+sub_dirs=("SMB" "FTP" "MSSQL" "NMAP" "SSH" "NTP" "LDAP" "MSRPC" "DOCKER" "RDP" "SNMP" "NUCLEI" "AJP" "HTTPX"  "NMAP" "PostgreSQL" "SMTP" "VNC")
+
+# Create main directory
+mkdir -p "$results_dir"
+
+# Create subdirectories
+for dir in "${sub_dirs[@]}"; do
+  mkdir -p "$results_dir/$dir"
+done
+
 nmap --script-updatedb
 # Check if target_ip is a single IP or a subnet
 if [[ $IP == *"/"* ]]; then
